@@ -26,7 +26,7 @@ exports.registerAndEnrollStudent = async (caClient, wallet, orgMspId, userId, af
 
 		// Phải sử dụng admin để đăng ký
 		const adminIdentity = await wallet.get(adminUserId);
-        console.log("Thís is ờ : ", adminIdentity);
+
 		if (!adminIdentity) {
 			console.log('An identity for the admin user does not exist in the wallet');
 			console.log('Enroll the admin user before retrying');

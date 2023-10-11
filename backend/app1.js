@@ -71,13 +71,13 @@ async function main() {
             result = await contract.evaluateTransaction('GetAllStudents');
             console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-            // console.log('\n--> Submit Transaction: CreateStudent, creates a new student with ID (B1906425)');
-            // await contract.submitTransaction('CreateStudent', 'B1906425', 'Ronaldo', '21', '789 Elm St');
-            // console.log('*** Result: committed');
+            console.log('\n--> Submit Transaction: CreateStudent, creates a new student with ID (B1906425)');
+            await contract.submitTransaction('CreateStudent', 'B1906425', 'Ronaldo', '21', '789 Elm St');
+            console.log('*** Result: committed');
 
-            // console.log('\n--> Evaluate Transaction: ReadStudent, function returns information about a student with ID (B1906425)');
-            // result = await contract.evaluateTransaction('ReadStudent', 'B1906425');
-            // console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+            console.log('\n--> Evaluate Transaction: ReadStudent, function returns information about a student with ID (B1906425)');
+            result = await contract.evaluateTransaction('ReadStudent', 'B1906425');
+            console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
             // console.log('\n--> Submit Transaction: UpdateStudent, updates information about a student with ID (B1906425)');
             // await contract.submitTransaction('UpdateStudent', 'B1906425', 'David Beck ', '2123', '789 Elm St');

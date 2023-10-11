@@ -1,5 +1,5 @@
 import express from "express";
-import { createResult, updateResult, deleteResult, getResultStudent } from "../controller/resultController.js";
+import { createResult, updateResult, deleteResult, getResultMongo, getResultBlock } from "../controller/resultController.js";
 
 const router = express.Router();
 
@@ -13,6 +13,9 @@ router.put('/:id', updateResult);
 router.delete('/:id', deleteResult);
 
 // get result by studentMS
-router.get('/getResultByStudentMS', getResultStudent)
+router.get('/search/ResultBlock', getResultBlock);
+
+// get result by studentMS
+router.get('/search/ResultMongo', getResultMongo);
 
 export default router;

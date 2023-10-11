@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
 
 const resultSchema = new mongoose.Schema({
-    subjectId: {
-        type: String,
-        require: true,
-    },
-    studentId: {
+    subjectMS: {
         type: String,
         require: true,
     },
@@ -17,15 +13,23 @@ const resultSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    teacherId: {
-        type: String,
-        require: true,
-    },
     score: {
         type: Number,
         require: true,
         max: 10,
         min: 0,
+    },
+    semester: {
+        type: Number,
+        require: true,
+        max: 4,
+        min: 0,
+    },
+    date_awarded: {
+        type: String,
+        required: true,
+        default: new Date().getFullYear().toString(), // Lấy năm hiện tại và chuyển thành chuỗi
+        match: /^\d{4}$/, // Sử dụng biểu thức chính quy để đảm bảo chỉ lưu năm (ví dụ: "2022")
     },
     // year: {
     //     type: Date,
@@ -33,11 +37,8 @@ const resultSchema = new mongoose.Schema({
     // },
 });
 
-resultSchema.index({"studentId": 1});
-resultSchema.index({"teacherId": 1});
-resultSchema.index({"subjectId": 1});
 
-const Result = mongoose.model("Reult", resultSchema);
+const Result = mongoose.model("Result", resultSchema);
 Result.createIndexes();
 
 export default Result;
