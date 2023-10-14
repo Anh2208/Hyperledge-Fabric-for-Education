@@ -18,7 +18,7 @@ const walletPath = path.join(__dirname, '..', 'wallet');
 
 dotenv.config();
 const mspOrg1 = 'Org1MSP';
-const cppUser =  JSON.parse(fs.readFileSync(process.env.ccpPATH, 'utf8'));
+const cppUser = JSON.parse(fs.readFileSync(process.env.ccpPATH, 'utf8'));
 
 export const fabric_initial_system = async (mspOrg1) => {
 
@@ -50,16 +50,17 @@ export const fabric_initial_system = async (mspOrg1) => {
 
 export const create_user = async (userId, req, res, next) => {
     try {
-
         // caClient
         const caURL = cppUser.certificateAuthorities['ca.org1.example.com'].url;
 
-        const caClient = new FabricCAServices(caURL);
+        // const caClient = new FabricCAServices(caURL);
+        const caClient = buildCAClient(FabricCAServices, cppUser, 'ca.org1.example.com');
 
         //wallet
         const wallet = await Wallets.newFileSystemWallet(process.env.wallet);
 
         registerAndEnrollUser(caClient, wallet, mspOrg1, userId, 'org1.CNTT&TT');
+
 
     } catch (error) {
         console.error(`Failed create new user with error: ${error}`);

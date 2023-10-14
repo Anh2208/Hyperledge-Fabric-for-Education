@@ -347,65 +347,66 @@ class Chaincode extends Contract {
 		iterator.close();
 		return allResults;
 	}
-
-	// InitLedger creates sample assets in the ledger
-	async InitLedger(ctx) {
-		const assets = [
-			{
-				assetID: 'asset1',
-				color: 'blue',
-				size: 5,
-				owner: 'Tom',
-				appraisedValue: 123
-			},
-			{
-				assetID: 'asset2',
-				color: 'red',
-				size: 5,
-				owner: 'Brad',
-				appraisedValue: 100
-			},
-			{
-				assetID: 'asset3',
-				color: 'green',
-				size: 10,
-				owner: 'Jin Soo',
-				appraisedValue: 200
-			},
-			{
-				assetID: 'asset4',
-				color: 'yellow',
-				size: 10,
-				owner: 'Max',
-				appraisedValue: 200
-			},
-			{
-				assetID: 'asset5',
-				color: 'black',
-				size: 15,
-				owner: 'Adriana',
-				appraisedValue: 250
-			},
-			{
-				assetID: 'asset6',
-				color: 'white',
-				size: 15,
-				owner: 'Michel',
-				appraisedValue: 250
-			},
-		];
-
-		for (const asset of assets) {
-			await this.CreateAsset(
-				ctx,
-				asset.assetID,
-				asset.color,
-				asset.size,
-				asset.owner,
-				asset.appraisedValue
-			);
-		}
-	}
 }
 
 module.exports = Chaincode;
+
+
+	// // InitLedger creates sample assets in the ledger
+	// async InitLedger(ctx) {
+	// 	const assets = [
+	// 		{
+	// 			assetID: 'asset1',
+	// 			color: 'blue',
+	// 			size: 5,
+	// 			owner: 'Tom',
+	// 			appraisedValue: 123
+	// 		},
+	// 		{
+	// 			assetID: 'asset2',
+	// 			color: 'red',
+	// 			size: 5,
+	// 			owner: 'Brad',
+	// 			appraisedValue: 100
+	// 		},
+	// 		{
+	// 			assetID: 'asset3',
+	// 			color: 'green',
+	// 			size: 10,
+	// 			owner: 'Jin Soo',
+	// 			appraisedValue: 200
+	// 		},
+	// 		{
+	// 			assetID: 'asset4',
+	// 			color: 'yellow',
+	// 			size: 10,
+	// 			owner: 'Max',
+	// 			appraisedValue: 200
+	// 		},
+	// 		{
+	// 			assetID: 'asset5',
+	// 			color: 'black',
+	// 			size: 15,
+	// 			owner: 'Adriana',
+	// 			appraisedValue: 250
+	// 		},
+	// 		{
+	// 			assetID: 'asset6',
+	// 			color: 'white',
+	// 			size: 15,
+	// 			owner: 'Michel',
+	// 			appraisedValue: 250
+	// 		},
+	// 	];
+
+	// 	for (const asset of assets) {
+	// 		await this.CreateAsset(
+	// 			ctx,
+	// 			asset.assetID,
+	// 			asset.color,
+	// 			asset.size,
+	// 			asset.owner,
+	// 			asset.appraisedValue
+	// 		);
+	// 	}
+	// }

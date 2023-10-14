@@ -1,5 +1,5 @@
 import Result from "../models/Result.js";
-
+import Group from "../models/Group.js";
 
 import { Wallets, Gateway } from "fabric-network"
 import FabricCAServices from "fabric-ca-client"
@@ -27,7 +27,9 @@ function prettyJSONString(inputString) {
     return JSON.stringify(JSON.parse(inputString), null, 2);
 }
 
-export const createResult = async (req, res) => {
+// create result in blockchain
+export const createResultBlock = async (req, res) => {
+    const ID = req.body._id;
 
     try {
         //connect to hyperledger fabric network and contract
@@ -41,45 +43,13 @@ export const createResult = async (req, res) => {
         });
         const network = await gateway.getNetwork(channelName);
         const contract = network.getContract(chaincodeName);
-        // Check data exists in blockchain
-        let existBlock = await contract.evaluateTransaction('ResultExists', req.body.subjectMS, req.body.studentMS);
-        let checkExistBlock = prettyJSONString(existBlock.toString());
-        let actionPerformed = false;
 
-        //check data exists in blockchain
-        if (checkExistBlock == 'true') {
-            console.log("checkExistBlock", checkExistBlock);
-            actionPerformed = true;
-        }
-        // Check data exists in MongoDB
-        const existMongo = await Result.find({
-            subjectMS: req.body.subjectMS,
-            studentMS: req.body.studentMS,
-        });
-        if (existMongo.length > 0) {
-            console.log("existMongo", existMongo);
-            actionPerformed = true;
-        }
-        // Nếu đã thực hiện một trong các hành động trên, dừng lại
-        if (actionPerformed == true) {
-            gateway.disconnect();
-            res.status(500).json({ success: false, message: "Result exists in Database, try again" });
-            return;
-        }
         try {
-            const saveResult = await Result.create({
-                subjectMS: req.body.subjectMS,
-                studentMS: req.body.studentMS,
-                teacherMS: req.body.teacherMS,
-                semester: req.body.semester,
-                score: req.body.score,
-            });
+            await Result.findByIdAndUpdate(ID, { $set: req.body, }, { new: true });
 
-            const resultID = saveResult._id;
-            const date_awarded = saveResult.date_awarded;
-            console.log("date_awarded", date_awarded);
+            const saveResult = await Result.findById(ID);
 
-            await contract.submitTransaction('CreateResult', resultID, req.body.subjectMS, req.body.studentMS, req.body.teacherMS, req.body.semester, req.body.score, date_awarded);
+            await contract.submitTransaction('CreateResult', ID, saveResult.groupMa, saveResult.subjectMS, saveResult.studentMS, saveResult.teacherMS, saveResult.semester, saveResult.score, saveResult.date_awarded);
 
             res.status(200).json({ success: true, message: "Create result successfully!!!", data: saveResult });
         } finally {
@@ -90,11 +60,311 @@ export const createResult = async (req, res) => {
     }
 };
 
+// create result in mongodb
+export const createResult = async (req, res) => {
+    const groupID = req.params.id;
+    // const newResult = new Result({ ...req.body });
+    const newResult = new Result(req.body);
+
+    try {
+        // Check data exists in MongoDB
+        const existMongo = await Result.find({
+            $and: [
+                { subjectMS: req.body.subjectMS },
+                { studentMS: req.body.studentMS }
+            ]
+        });
+        console.log("existMongo", existMongo);
+        if (existMongo.length > 0) {
+            res.status(500).json({ success: false, message: "Result exists in Database, try again" });
+            return;
+        }
+
+        const saveResult = await newResult.save();
+
+        // update id result of the group
+        await Group.findByIdAndUpdate(groupID, {
+            $push: { results: saveResult._id },
+        });
+
+        res.status(200).json({ success: true, message: "Create Result success", data: saveResult });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, message: "Create Result Failed, Try again!!!" });
+    }
+}
+
+// get data in blockchain
+// get history result
+export const getResultHistory = async (req, res) => {
+    const resultID = req.body.id;
+
+    try {
+        // connect to ledger and contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(userId),
+            discovery: { enabled: true, asLocalhost: true }
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+
+        const resultJSON = await contract.evaluateTransaction('GetResultHistory', resultID);
+
+        console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
+
+        const jsoncompare = JSON.parse(resultJSON.toString());
+        console.log("Test ko coas", jsoncompare[0].TxId);
+
+        // const creator = await contract.evaluateTransaction('GetTransactionCreator', jsoncompare[0].TxId);
+        // console.log("Test", creator);
+
+
+        res.status(200).json({ success: true, message: "Successful find history Result", data: JSON.parse(resultJSON.toString()) });
+
+    } catch (err) {
+        res.status(404).json({
+            success: false,
+            message: "Failed get history result!!!",
+        });
+    }
+}
+
+export const getAllResultByStudentMS = async (req, res) => {
+    const MSSV = req.body.mssv;
+
+    try {
+        // connect to ledger and contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(userId),
+            discovery: { enabled: true, asLocalhost: true }
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+
+        const resultJSON = await contract.evaluateTransaction('getAllResultByStudentMS', MSSV);
+
+        console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
+
+        res.status(200).json({ success: true, message: "Successful find all Result by mssv", data: JSON.parse(resultJSON.toString()) });
+
+    } catch (err) {
+        res.status(404).json({
+            success: false,
+            message: "Result by MSSV not found",
+        });
+    }
+}
+
+export const getAllResultByTeacherMS = async (req, res) => {
+    const MSGV = req.body.msgv;
+
+    try {
+        // connect to ledger and contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(userId),
+            discovery: { enabled: true, asLocalhost: true }
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+
+        const resultJSON = await contract.evaluateTransaction('getAllResultByTeacherMS', MSGV);
+
+        console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
+
+        res.status(200).json({ success: true, message: "Successful find all Result by msgv", data: JSON.parse(resultJSON.toString()) });
+
+    } catch (err) {
+        res.status(404).json({
+            success: false,
+            message: "Result by MSGV not found",
+        });
+    }
+}
+
+export const getAllResult = async (req, res) => {
+
+    try {
+        // connect to ledger and contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(userId),
+            discovery: { enabled: true, asLocalhost: true }
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+
+        const resultJSON = await contract.evaluateTransaction('getAllResultByType', 'result');
+
+        console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
+
+        res.status(200).json({ success: true, message: "Successful find all Result", data: JSON.parse(resultJSON.toString()) });
+
+    } catch (err) {
+        res.status(404).json({
+            success: false,
+            message: "Result not found",
+        });
+    }
+}
+
+export const getAllResultByID = async (req, res) => {
+    const resultID = req.body.resultID;
+
+    try {
+        // connect to ledger and contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(userId),
+            discovery: { enabled: true, asLocalhost: true }
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+
+        const resultJSON = await contract.evaluateTransaction('getAllResultByID', resultID);
+
+        console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
+
+        res.status(200).json({ success: true, message: "Successful find all Result by resultID", data: JSON.parse(resultJSON.toString()) });
+
+    } catch (err) {
+        res.status(404).json({
+            success: false,
+            message: "Result by resultID not found",
+        });
+    }
+}
+
+export const getAllResultByGroup = async (req, res) => {
+    const groupMa = req.body.groupMa;
+    const date_awarded = req.body.date_awarded;
+
+    try {
+        // connect to ledger and contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(userId),
+            discovery: { enabled: true, asLocalhost: true }
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+
+        const resultJSON = await contract.evaluateTransaction('getAllResultByGroup', groupMa, date_awarded);
+
+        console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
+
+        res.status(200).json({ success: true, message: "Successful find all result by group", data: JSON.parse(resultJSON.toString()) });
+
+    } catch (err) {
+        res.status(404).json({
+            success: false,
+            message: "Result by group not found",
+        });
+    }
+}
+
+// get result in mongodb
+// get result by id
+export const getResultByID = async (req, res) => {
+    const id = req.body.id;
+    try {
+        const result = await Result.findById(id);
+        res.status(200).json({ success: true, message: "Get result in mongodb successfully!!!", data: result });
+    } catch (err) {
+        res.status(404).json({ success: false, message: "Get result in mongdb not found" });
+    }
+}
+
+// get result by mssv
+export const getResultByMSSV = async (req, res) => {
+    const studentMS = req.body.studentMS;
+
+    try {
+        const result = await Result.findOne({ studentMS: studentMS });
+
+        res.status(200).json({ success: true, message: "Get result in mongodb successfully!!!", data: result });
+    } catch (err) {
+        res.status(404).json({ success: false, message: "Get result in mongdb not found" });
+    }
+}
+
+// get data by msgv
+export const getResultByMSGV = async (req, res) => {
+    const teacherMS = req.body.teacherMS;
+
+    try {
+        const result = await Result.find({ teacherMS: teacherMS });
+        res.status(200).json({ success: true, message: "Get result in mongodb successfully!!!", data: result });
+    } catch (err) {
+        res.status(404).json({ success: false, message: "Get result in mongdb not found" });
+    }
+}
+
+export const getResultByGroup = async (req, res) => {
+    const groupMa = req.body.groupMa;
+
+    try {
+        const result = await Result.find({ groupMa: groupMa });
+        res.status(200).json({ success: true, message: "Get result in mongodb successfully!!!", data: result });
+    } catch (err) {
+        res.status(404).json({ success: false, message: "Get result in mongdb not found" });
+    }
+}
+
+
 // update result
 export const updateResult = async (req, res) => {
-    const id = req.params.id;
+
+    const id = req.body._id;
     try {
+        // check data 
+        console.log("hahah", id);
+        const check = await compareResult(id);
+        console.log("hahah");
+        if (!check) {
+            res.status(500).json({
+                success: false,
+                message: "Error: Inconsistent Data",
+            });
+            return;
+        }
+        console.log("hahah");
+        //update result in mongodb
         const updateResult = await Result.findByIdAndUpdate(id, { $set: req.body, }, { new: true });
+
+        const saveResult = await Result.findById(updateResult);
+
+        //connect to hyperledger fabric network and contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(userId),
+            discovery: { enabled: true, asLocalhost: true }
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+
+        // update result in blockchain
+        await contract.submitTransaction('UpdateResult', id, saveResult.groupMa, saveResult.subjectMS, saveResult.studentMS, saveResult.teacherMS, saveResult.semester, saveResult.score, saveResult.date_awarded);
+
+        gateway.disconnect();
+
         res.status(200).json({
             success: true,
             message: "Update result successfuly!!!",
@@ -108,80 +378,55 @@ export const updateResult = async (req, res) => {
     }
 };
 
-// delete result
+// delete result 
 export const deleteResult = async (req, res) => {
-    const id = req.params.id;
-    const wallet = await buildWallet(Wallets, walletPath);
-    const gateway = new Gateway();
+    const GroupID = req.params.id;
 
-    await gateway.connect(cppUser, {
-        wallet,
-        identity: String(userId),
-        discovery: { enabled: true, asLocalhost: true }
-    });
-    const network = await gateway.getNetwork(channelName);
-    const contract = network.getContract(chaincodeName);
-
-    // create flag
-    let mongoDeleteSuccess = false;
-    let blockchainDeleteSuccess = false;
+    let groupMa = req.body.groupMa;
+    let studentMS = req.body.studentMS;
+    const ResultDelete = await Result.findOne({ groupMa, studentMS });
 
     try {
-        // delete object in Mongodb
-        await Result.findByIdAndDelete(id);
-        mongoDeleteSuccess = true;
+        // delete result from group
+        await Group.findByIdAndUpdate(GroupID, {
+            $pull: { results: ResultDelete._id },
+        });
+        // delete result in mongodb
+        await Result.findByIdAndDelete(ResultDelete._id);
 
-        // delete object in Blockchain
-        await contract.submitTransaction('DeleteResult', id);
-        blockchainDeleteSuccess = true;
+        // delete result from 
+        // connect to contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
 
-        // if delete from two data success
-        if (mongoDeleteSuccess && blockchainDeleteSuccess) {
-            res.status(200).json({
-                success: true,
-                message: "Successfully deleted result",
-            });
-        } else {
-            res.status(500).json({
-                success: false,
-                message: "One or both delete operations failed",
-            });
-        }
-    } catch (error) {
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(userId),
+            discovery: { enabled: true, asLocalhost: true }
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
+
+        await contract.submitTransaction('DeleteResult', ResultDelete._id);
+
+        gateway.disconnect();
+
+        res.status(200).json({
+            success: true,
+            message: "Successfully deleted",
+        });
+    } catch (err) {
         res.status(500).json({
             success: false,
-            message: "One or both delete operations failed",
-        });
-    } finally {
-        gateway.disconnect();
-    }
-};
-
-// get result by studentMS
-export const getResultMongo = async (req, res) => {
-    const studentMS = new RegExp(req.query.studentMS, "i");
-    // const masoStudent = "B1906425";
-    // console.log(studentMS);
-    try {
-        const result = await Result.find({ studentMS });
-        res.status(200).json({
-            success: true,
-            message: "Find result by studentMS in Mongodb successfully",
-            data: result,
-        });
-    } catch (error) {
-        res.status(404).json({
-            success: false,
-            message: "result of studentMS not found",
+            message: "failed to delete",
         });
     }
 };
 
-// get result in blockchain
-
-export const getResultBlock = async (req, res) => {
-    const studentMS = new RegExp(req.query.studentMS, "i").source;
+// so sánh data resutt mongodb và blockchain
+const compareResult = async (id) => {
     // const MS = studentMS.source;
+    const resultMongo = await Result.findById(id);
 
     const wallet = await buildWallet(Wallets, walletPath);
     const gateway = new Gateway();
@@ -194,29 +439,90 @@ export const getResultBlock = async (req, res) => {
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
 
-    try {
-        console.log("studentMS", studentMS)
-        // let resultblock = await contract.evaluateTransaction('ReadResultByMS', studentMS);
-        // console.log("studentMS", resultblock)
-        console.log('\n--> Evaluate Transaction: ReadStudent, function returns information about a student with ID (B1906425)');
-        let result = await contract.evaluateTransaction('ReadResultsByStudentMS', 'B1906428');
-        
-        console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+    let result = await contract.evaluateTransaction('getAllResultByID', id);
 
-        // let result = prettyJSONString(resultblock.toString());
+    console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-        res.status(200).json({
-            success: true,
-            message: "Find result by studentMS in Blockchain successfully",
-            data: result,
-        });
-        gateway.disconnect();
-    } catch (error) {
-        res.status(404).json({
-            success: false,
-            message: "result of studentMS not found",
-        });
-    } finally {
-        gateway.disconnect();
-    }
-};
+    const resultBlock = JSON.parse(result.toString());
+
+    console.log("resultBlock", resultBlock);
+    console.log("resultMongo", resultMongo);
+
+    // so sánh 2 bên dữ liệu
+    const fieldsToCompare = ['groupMa', 'subjectMS', 'studentMS', 'teacherMS', 'semester', 'score', 'date_awarded'];
+
+    let dataIsEqual = true;
+
+    fieldsToCompare.forEach(field => {
+        const resultBlockString = String(resultBlock[0][field]);
+        const resultMongoString = String(resultMongo[field]);
+        console.log("resultBlockString", resultBlockString);
+        if (resultBlockString !== resultMongoString) {
+            dataIsEqual = false;
+            return;
+        }
+    });
+
+
+    gateway.disconnect();
+
+    return dataIsEqual;
+}
+
+
+// // get result in blockchain
+// export const getResultBlock = async (req, res) => {
+//     const resultID = req.body.id;
+//     // const MS = studentMS.source;
+//     const resultMongo = await Result.findById(resultID);
+
+//     const wallet = await buildWallet(Wallets, walletPath);
+//     const gateway = new Gateway();
+
+//     await gateway.connect(cppUser, {
+//         wallet,
+//         identity: String(userId),
+//         discovery: { enabled: true, asLocalhost: true }
+//     });
+//     const network = await gateway.getNetwork(channelName);
+//     const contract = network.getContract(chaincodeName);
+//     try {
+
+//         // let resultblock = await contract.evaluateTransaction('ReadResultByMS', studentMS);
+//         // console.log("studentMS", resultblock)
+//         console.log('\n--> Evaluate Transaction: ReadStudent, function returns information about a student with ID (B1906425)');
+//         let result = await contract.evaluateTransaction('getResultByID', resultID);
+
+//         console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+
+//         const resultBlock = JSON.parse(result.toString());
+
+//         // so sánh 2 bên dữ liệu
+//         const fieldsToCompare = ['groupMa', 'subjectMS', 'studentMS', 'teacherMS', 'semester', 'score', 'date_awarded'];
+
+//         let dataIsEqual = true;
+//         let i = 1;
+//         fieldsToCompare.forEach(field => {
+//             const resultBlockString = String(resultBlock[field]);
+//             const resultMongoString = String(resultMongo[field]);
+//             if (resultBlockString !== resultMongoString) {
+//                 dataIsEqual = false;
+//                 return;
+//             }
+//         });
+
+//         res.status(200).json({
+//             success: true,
+//             message: "Find result by studentMS in Blockchain successfully",
+//             data: resultBlock,
+//         });
+//         gateway.disconnect();
+//     } catch (error) {
+//         res.status(404).json({
+//             success: false,
+//             message: "result of studentMS not found",
+//         });
+//     } finally {
+//         gateway.disconnect();
+//     }
+// };

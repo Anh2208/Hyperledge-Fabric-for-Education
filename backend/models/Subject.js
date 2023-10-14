@@ -15,7 +15,6 @@ const subjectSchema = new mongoose.Schema({
     }
 });
 
-subjectSchema.index({'subjectMa': 1});
 
 const Subject = mongoose.model("Subject", subjectSchema);
 Subject.createIndexes();

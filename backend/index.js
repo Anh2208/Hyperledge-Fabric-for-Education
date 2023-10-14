@@ -8,11 +8,12 @@ import authRoute from "./routes/auth.js"
 import subjectRoute from "./routes/subject.js"
 import resultRoute from "./routes/result.js"
 import adminRoute from "./routes/admin.js"
+import groupRoute from "./routes/group.js"
 
 //blokchain action
 // import loadNetwork from "./loaders/fabric-loader.js"
 import { fabric_initial_system, create_user } from "./controller/hyperledgerController.js";
-import { testConnect } from "./test-connect.js";
+// import { testConnect } from "./test-connect.js";
 
 dotenv.config();
 const app = express();
@@ -23,8 +24,8 @@ mongoose.set("strictQuery", false);
 const connect = async () => {
     try {
         await mongoose.connect(process.env.mongoURI, {
-            serverSelectionTimeoutMS: 30000, // Tăng thời gian chờ lên 30 giây
-            socketTimeoutMS: 45000, // Tăng thời gian chờ cho socket lên 45 giây
+            // serverSelectionTimeoutMS: 30000, // Tăng thời gian chờ lên 30 giây
+            // socketTimeoutMS: 45000, // Tăng thời gian chờ cho socket lên 45 giây
             useNewUrlParser: true,
             useUnifiedTopology: true,
         })
@@ -48,11 +49,12 @@ app.use('/auth', authRoute);
 app.use('/subject', subjectRoute);
 app.use('/result', resultRoute);
 app.use('/admin', adminRoute);
+app.use('/group', groupRoute);
 
 // loadNetwork("Org1MSP");
-fabric_initial_system('Org1MSP');
-create_user("appUser");
-// testConnect();
+await fabric_initial_system('Org1MSP');
+await create_user("appUser");
+// // testConnect();
 
 app.listen(port, () => {
     connect();

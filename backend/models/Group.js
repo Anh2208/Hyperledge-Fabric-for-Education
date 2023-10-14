@@ -1,26 +1,23 @@
 import mongoose from "mongoose";
 
-const resultSchema = new mongoose.Schema({
+const groupSchema = new mongoose.Schema({
     groupMa: {
         type: String,
         required: true
     },
-    subjectMS: {
+    subjectMa: {
         type: String,
         required: true,
     },
-    studentMS: {
+    msgv: {
         type: String,
         required: true,
+        minlength: 8,
     },
-    teacherMS: {
-        type: String,
-        required: true,
-    },
-    score: {
+    slot: {
         type: Number,
-        max: 10,
-        min: 0,
+        required: true,
+        min: 0
     },
     semester: {
         type: Number,
@@ -28,24 +25,25 @@ const resultSchema = new mongoose.Schema({
         max: 4,
         min: 0,
     },
-    date_awarded: {
+    access: { // thời gian cho phép thay đổi điểm sinh viên
+        type: Date,
+        required: true
+    },
+    year: {
         type: String,
         required: true,
         default: new Date().getFullYear().toString(), // Lấy năm hiện tại và chuyển thành chuỗi
         match: /^\d{4}$/, // Sử dụng biểu thức chính quy để đảm bảo chỉ lưu năm (ví dụ: "2022")
     },
-    // group: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'Group'
-    // }
-    // year: {
-    //     type: Date,
-    //     require: true,
-    // },
-});
+    results: [
+        {
+          type: mongoose.Types.ObjectId,
+          ref: "Result",
+        },
+    ],
+})
 
+const Group = mongoose.model("Group", groupSchema);
+Group.createIndexes();
 
-const Result = mongoose.model("Result", resultSchema);
-// Result.createIndexes();
-
-export default Result;
+export default Group;

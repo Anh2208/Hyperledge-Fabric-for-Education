@@ -51,7 +51,9 @@ exports.enrollAdmin = async (caClient, wallet, orgMspId) => {
 };
 
 exports.registerAndEnrollUser = async (caClient, wallet, orgMspId, userId, affiliation) => {
+	
 	try {
+		
 		// Check to see if we've already enrolled the user
 		const userIdentity = await wallet.get(userId);
 		if (userIdentity) {
@@ -66,7 +68,7 @@ exports.registerAndEnrollUser = async (caClient, wallet, orgMspId, userId, affil
 			console.log('Enroll the admin user before retrying');
 			return;
 		}
-
+		
 		// build a user object for authenticating with the CA
 		const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
 		const adminUser = await provider.getUserContext(adminIdentity, adminUserId);

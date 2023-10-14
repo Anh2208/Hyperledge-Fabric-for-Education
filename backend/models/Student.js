@@ -12,7 +12,6 @@ const studentSchema = new mongoose.Schema({
         required: true,
         trim: true,
         minlength: 1,
-        unique: true,
         validate: {
             validator: validator.isEmail,
             message: '{VALUE} is not a valid email'
@@ -22,13 +21,16 @@ const studentSchema = new mongoose.Schema({
         type: String,
         require: true,
         minlength: 8,
-        unique: true,
     },
     name: {
         type: String,
         required: true,
         trim: true,
 
+    },
+    sex: {
+        type: String,
+        require: true
     },
     password: {
         type: String,
@@ -105,8 +107,6 @@ studentSchema.pre('save', async function (next) {//check password when save crea
 });
 
 
-studentSchema.index({"email" : 1}, {unique: true});// tạo chỉ mục, đảm bảo email là duy nhất
-studentSchema.index({"mssv" : 1}, {unique: true});// tạo chỉ mục, đảm bảo mã số sinh viên (mssv) là duy nhất
 let Student = mongoose.model("Student", studentSchema);
 Student.createIndexes();
 
