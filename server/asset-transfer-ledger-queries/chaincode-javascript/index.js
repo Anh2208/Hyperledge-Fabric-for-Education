@@ -5,9 +5,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-'use strict';
+"use strict";
 
-const CC = require('./lib/asset_transfer_ledger_chaincode_student.js');
+const CC = require("./lib/asset_transfer_ledger_chaincode_student.js");
 
 module.exports.CC = CC;
-module.exports.contracts = [ CC ];
+module.exports.contracts = [CC];

@@ -5,14 +5,14 @@
 
 // const dotenv = require('dotenv');
 
-import { Wallets } from 'fabric-network';
-import fs from 'fs'
+import { Wallets } from "fabric-network";
+import fs from "fs";
 import dotenv from "dotenv";
-import path from 'path'
+import path from "path";
 
 dotenv.config();
 
-const adminUserId = 'admin';
+const adminUserId = "admin";
 
 /**
  * Adds a new user/entity to the wallet. Creates a separate json file to store hex keys of the user.
@@ -21,44 +21,45 @@ const adminUserId = 'admin';
  * @returns {Promise<{} | Error>} public and private key in hex format;
  */
 const createNewWalletEntity = async (enrollmentObject, userName) => {
-    
-    const wallet = await Wallets.newFileSystemWallet(process.env.wallet);
+  const wallet = await Wallets.newFileSystemWallet(process.env.wallet);
 
+  const identity = await wallet.get(adminUserId);
 
-    const identity = await wallet.get(adminUserId);
+  if (identity) {
+    console.log("An identity for the admin user already exists in the wallet");
+    return;
+  }
 
-    if (identity) {
-        console.log('An identity for the admin user already exists in the wallet');
-        return;
-    }
+  const x509Identity = {
+    credentials: {
+      certificate: enrollmentObject.certificate,
+      privateKey: enrollmentObject.key.toBytes(),
+    },
+    mspId: "Org1MSP",
+    type: "X.509",
+  };
 
-    const x509Identity = {
-        credentials: {
-            certificate: enrollmentObject.certificate,
-            privateKey: enrollmentObject.key.toBytes(),
+  let hexKeyEntity = {
+    publicKey: enrollmentObject.key._key.pubKeyHex,
+    privateKey: enrollmentObject.key._key.prvKeyHex,
+    userName: userName,
+  };
 
-        },
-        mspId: 'Org1MSP',
-        type: 'X.509',
-    };
+  let hexDataString = JSON.stringify(hexKeyEntity, null, 4);
 
+  await Promise.all([
+    wallet.put(userName, x509Identity),
+    fs.writeFile(
+      path.join(process.env.wallet, `${userName}.json`),
+      hexDataString,
+      (err) => {
+        if (err) throw err;
+      },
+    ),
+  ]);
 
-    let hexKeyEntity = {
-        publicKey: enrollmentObject.key._key.pubKeyHex,
-        privateKey: enrollmentObject.key._key.prvKeyHex,
-        userName: userName
-    };
-
-    let hexDataString = JSON.stringify(hexKeyEntity, null, 4);
-
-    await Promise.all([
-        wallet.put(userName, x509Identity),
-        fs.writeFile(path.join(process.env.wallet, `${userName}.json`), hexDataString,
-            (err) => { if (err) throw err})
-    ]);
-
-    return hexKeyEntity;
-}
+  return hexKeyEntity;
+};
 
 /**
  * Load the hex form of public and private keys from wallet folder.
@@ -87,6 +88,5 @@ const createNewWalletEntity = async (enrollmentObject, userName) => {
 //     }
 // }
 
-
 // module.exports = {createNewWalletEntity, loadHexKeysFromWallet};
-export default {createNewWalletEntity};
+export default { createNewWalletEntity };

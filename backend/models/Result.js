@@ -1,49 +1,48 @@
 import mongoose from "mongoose";
 
 const resultSchema = new mongoose.Schema({
-    groupMa: {
-        type: String,
-        required: true
-    },
-    subjectMS: {
-        type: String,
-        required: true,
-    },
-    studentMS: {
-        type: String,
-        required: true,
-    },
-    teacherMS: {
-        type: String,
-        required: true,
-    },
-    score: {
-        type: Number,
-        max: 10,
-        min: 0,
-    },
-    semester: {
-        type: Number,
-        required: true,
-        max: 4,
-        min: 0,
-    },
-    date_awarded: {
-        type: String,
-        required: true,
-        default: new Date().getFullYear().toString(), // Lấy năm hiện tại và chuyển thành chuỗi
-        match: /^\d{4}$/, // Sử dụng biểu thức chính quy để đảm bảo chỉ lưu năm (ví dụ: "2022")
-    },
-    // group: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'Group'
-    // }
-    // year: {
-    //     type: Date,
-    //     require: true,
-    // },
+  groupMa: {
+    type: String,
+    required: true,
+  },
+  subjectMS: {
+    type: String,
+    required: true,
+  },
+  studentMS: {
+    type: String,
+    required: true,
+  },
+  teacherMS: {
+    type: String,
+    required: true,
+  },
+  score: {
+    type: Number,
+    max: 10,
+    min: 0,
+  },
+  semester: {
+    type: Number,
+    required: true,
+    max: 4,
+    min: 0,
+  },
+  date_awarded: {
+    type: String,
+    required: true,
+    default: new Date().getFullYear().toString(), // Lấy năm hiện tại và chuyển thành chuỗi
+    match: /^\d{4}$/, // Sử dụng biểu thức chính quy để đảm bảo chỉ lưu năm (ví dụ: "2022")
+  },
+  // group: {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: 'Group'
+  // }
+  // year: {
+  //     type: Date,
+  //     require: true,
+  // },
 });
-
 
 const Result = mongoose.model("Result", resultSchema);
 // Result.createIndexes();

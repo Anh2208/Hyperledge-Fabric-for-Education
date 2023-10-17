@@ -1,35 +1,35 @@
 [
-    {
-        "email": "anhvh1412@gmail.com",
-        "mssv": "B1906425",
-        "name": "Anh",
-        "password": "123456"
-    },
-    {
-        "email": "anhvh2208@gmail.com",
-        "msgv": "A1906425",
-        "name": "An",
-        "password": "123456"
-    },
-    {
-        "subjectId": "CT001",
-        "studentId": "3213123213213213321",
-        "studentMS": "Anh",
-        "teacherMS": "A1906425",
-        "teacherId": "3213213213213213421",
-        "score": 99
-    },
-    {
-        "subjectMa": "CT001",
-        "subjectTen": "Cơ sở dữ liệu",
-        "subjectSotc": "3"
-    },
-    {
-        "subjectId": "",
-        "studentId": "",
-        "studentMS": "",
-        "teacherMS": "",
-        "teacherId": "",
-        "score": 10
-    }
+  {
+    "email": "anhvh1412@gmail.com",
+    "mssv": "B1906425",
+    "name": "Anh",
+    "password": "123456"
+  },
+  {
+    "email": "anhvh2208@gmail.com",
+    "msgv": "A1906425",
+    "name": "An",
+    "password": "123456"
+  },
+  {
+    "subjectId": "CT001",
+    "studentId": "3213123213213213321",
+    "studentMS": "Anh",
+    "teacherMS": "A1906425",
+    "teacherId": "3213213213213213421",
+    "score": 99
+  },
+  {
+    "subjectMa": "CT001",
+    "subjectTen": "Cơ sở dữ liệu",
+    "subjectSotc": "3"
+  },
+  {
+    "subjectId": "",
+    "studentId": "",
+    "studentMS": "",
+    "teacherMS": "",
+    "teacherId": "",
+    "score": 10
+  }
 ]
