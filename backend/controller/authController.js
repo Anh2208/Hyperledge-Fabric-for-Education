@@ -56,7 +56,7 @@ export const createStudent = async (req, res) => {
     const checkLedger = (
       await contract.evaluateTransaction("CheckUserLedger", req.body.email)
     ).toString("utf8");
-    const checkWallet = await wallet.get(req.body.email);
+    const checkWallet = await wallet.get(req.body.email, 'student');
 
     let saveStudent = await Student.create({
       email: req.body.email,
@@ -154,13 +154,13 @@ export const createTeacher = async (req, res) => {
 
     console.log("Create teacher in blockchain successfully");
 
-    const publicKey = await create_user(req.body.email);
+    const publicKey = await create_user(req.body.email, "teacher");
 
     await Teacher.findByIdAndUpdate(teacherID, {
       $set: { publicKey: publicKey },
     });
 
-    console.log("Create teacher in wallet successfully", publicKey);
+    console.log("Create teacher in wallet successfully");
 
     res
       .status(200)
@@ -196,7 +196,7 @@ export const createAdmin = async (req, res) => {
     const checkLedger = (
       await contract.evaluateTransaction("CheckUserLedger", req.body.email)
     ).toString("utf8");
-    const checkWallet = await wallet.get(req.body.email);
+    const checkWallet = await wallet.get(req.body.email, 'admin');
 
     let saveAdmin = await Admin.create({
       adminMS: req.body.adminMS,

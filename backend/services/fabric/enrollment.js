@@ -67,6 +67,7 @@ export const registerAndEnrollUser = async (
   orgMspId,
   userId,
   affiliation,
+  role
 ) => {
   try {
     // Check to see if we've already enrolled the user
@@ -99,7 +100,7 @@ export const registerAndEnrollUser = async (
       {
         affiliation: affiliation,
         enrollmentID: userId,
-        role: "client",
+        role: "client",attrs: [{ name: 'role', value: role, ecert: true }]
       },
       adminUser,
     );
@@ -117,7 +118,7 @@ export const registerAndEnrollUser = async (
       type: "X.509",
     };
     await wallet.put(userId, x509Identity);
-    // console.log("enrollment key is:", enrollment);
+    console.log("enrollment key is:", enrollment);
     // console.log("Public key is:", enrollment.key._key.pubKeyHex);
     const publickey = enrollment.key._key.pubKeyHex;
 

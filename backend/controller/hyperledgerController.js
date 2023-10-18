@@ -53,7 +53,7 @@ export const fabric_initial_system = async (mspOrg1) => {
   }
 };
 
-export const create_user = async (userId, req, res, next) => {
+export const create_user = async (userId, role, req, res, next) => {
   try {
     // caClient
     const caURL = cppUser.certificateAuthorities["ca.org1.example.com"].url;
@@ -68,7 +68,7 @@ export const create_user = async (userId, req, res, next) => {
     //wallet
     const wallet = await Wallets.newFileSystemWallet(process.env.wallet);
 
-    const publickey = registerAndEnrollUser(caClient, wallet, mspOrg1, userId, "org1.CNTT&TT");
+    const publickey = registerAndEnrollUser(caClient, wallet, mspOrg1, userId, "org1.CNTT&TT", role);
     return publickey;
   } catch (error) {
     console.error(`Failed create new user with error: ${error}`);
