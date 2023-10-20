@@ -2,6 +2,7 @@
 
 // const { Contract } = require('fabric-contract-api');
 const { Contract } = require("fabric-contract-api");
+const ClientIdentity = require('fabric-shim').ClientIdentity;
 const KJUR = require("jsrsasign");
 
 class StoreContract extends Contract {
@@ -21,6 +22,11 @@ class StoreContract extends Contract {
     if (exists) {
       throw new Error("Kết quả này đã tồn tại.");
     }
+    console.log("test console.log in chaincode");
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'admin')) {
+      throw new Error('Not a valid User');
+    }
 
     let result = {
       docType: "result",
@@ -39,11 +45,17 @@ class StoreContract extends Contract {
 
   // GetAssetHistory returns the chain of custody for an asset since issuance.
   async GetResultHistory(ctx, resultID) {
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'admin')) {
+      console.log('User does not have the required role ("test").');
+      throw new Error('Not a valid User');
+    }
     let resultsIterator = await ctx.stub.getHistoryForKey(resultID);
     let results = await this._GetAllResults(resultsIterator, true);
 
     return JSON.stringify(results);
   }
+
 
   async GetTransactionCreator(ctx, txId) {
     const creator = await ctx.stub.getCreator();
@@ -215,6 +227,7 @@ class StoreContract extends Contract {
     if (studentExists) {
       throw new Error("Thông tin sinh viên này đã tồn tại.");
     }
+
     let student = {
       docType: "student",
       studentID,

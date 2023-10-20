@@ -36,7 +36,7 @@ export const fabric_initial_system = async (mspOrg1) => {
     // //build wallet
     const wallet = await buildWallet(Wallets, walletPath);
 
-    await enrollAdmin(caClient, wallet, mspOrg1);
+    await enrollAdmin(caClient, wallet, mspOrg1, 'admin');
 
     console.log("Create fabric-initial-system successfully!!!");
 

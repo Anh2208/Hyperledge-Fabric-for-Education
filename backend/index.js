@@ -60,7 +60,7 @@ app.use("/group", groupRoute);
 
 // loadNetwork("Org1MSP");
 await fabric_initial_system("Org1MSP");
-await create_user("appUser");
+await create_user("appUser", 'admin');
 // // testConnect();
 
 app.listen(port, () => {

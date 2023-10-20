@@ -118,7 +118,7 @@ export const registerAndEnrollUser = async (
       type: "X.509",
     };
     await wallet.put(userId, x509Identity);
-    console.log("enrollment key is:", enrollment);
+    // console.log("enrollment key is:", enrollment);
     // console.log("Public key is:", enrollment.key._key.pubKeyHex);
     const publickey = enrollment.key._key.pubKeyHex;
 
