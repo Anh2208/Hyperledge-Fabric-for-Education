@@ -15,6 +15,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import Student from "../models/Student.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,8 +34,9 @@ function prettyJSONString(inputString) {
 
 // create result in blockchain
 export const createResultBlock = async (req, res) => {
-  const ID = req.body._id;
-
+  const ID = req.body.data._id;
+  // const id = req.body.data._id;
+  console.log("Result is : ", req.body.groupID)
   try {
     //connect to hyperledger fabric network and contract
     const wallet = await buildWallet(Wallets, walletPath);
@@ -49,9 +51,10 @@ export const createResultBlock = async (req, res) => {
     const contract = network.getContract(chaincodeName);
 
     try {
-      await Result.findByIdAndUpdate(ID, { $set: req.body }, { new: true });
+      await Result.findByIdAndUpdate(ID, { $set: req.body.data }, { new: true });
 
       const saveResult = await Result.findById(ID);
+      // console.log("saveResult", saveResult);
 
       await contract.submitTransaction(
         "CreateResult",
@@ -59,12 +62,12 @@ export const createResultBlock = async (req, res) => {
         saveResult.groupMa,
         saveResult.subjectMS,
         saveResult.studentMS,
+        saveResult.studentName,
         saveResult.teacherMS,
         saveResult.semester,
         saveResult.score,
         saveResult.date_awarded,
       );
-
       res
         .status(200)
         .json({
@@ -87,31 +90,40 @@ export const createResult = async (req, res) => {
   const groupID = req.params.id;
   // const newResult = new Result({ ...req.body });
   const newResult = new Result(req.body);
-
+  // console.log("groupID is:", groupID);
   try {
     // Check data exists in MongoDB
     const existMongo = await Result.find({
       $and: [
-        { subjectMS: req.body.subjectMS },
+        { groupMa: req.body.groupMa },
         { studentMS: req.body.studentMS },
       ],
     });
-    console.log("existMongo", existMongo);
+    // console.log("existMongo", existMongo);
     if (existMongo.length > 0) {
       res
         .status(500)
         .json({
           success: false,
-          message: "Result exists in Database, try again",
+          message: "Sinh viên đã đăng ký học phần!!!",
         });
       return;
     }
-
     const saveResult = await newResult.save();
 
+    const student = await Student.findOne({ mssv: saveResult.studentMS });
+    if (student) {
+      await Result.findByIdAndUpdate(saveResult._id, {
+        studentName: student.name,
+      })
+    } else {
+      res.status(400).json({ success: false, message: "Sinh viên không tồn tại" });
+      return;
+    }
     // update id result of the group
     await Group.findByIdAndUpdate(groupID, {
       $push: { results: saveResult._id },
+      $inc: { currentslot: 1 },
     });
 
     res
@@ -441,16 +453,19 @@ export const getResultByGroup = async (req, res) => {
 
 // update result
 export const updateResult = async (req, res) => {
-  const id = req.body._id;
+  const id = req.body.data._id;
+
   try {
     // check data
-    console.log("hahah", id);
+    const resultStudent = await Result.findById(id);
     const check = await compareResult(id);
-    console.log("hahah");
+    // console.log("hahah");
+    console.log("check dsadsad", check);
     if (!check) {
+
       res.status(500).json({
         success: false,
-        message: "Error: Inconsistent Data",
+        message: `Kết quả học tập ${resultStudent.subjectMS} của ${resultStudent.studentName} không đồng bộ!!!`,
       });
       return;
     }
@@ -458,7 +473,7 @@ export const updateResult = async (req, res) => {
     //update result in mongodb
     const updateResult = await Result.findByIdAndUpdate(
       id,
-      { $set: req.body },
+      { $set: req.body.data },
       { new: true },
     );
 
@@ -475,7 +490,7 @@ export const updateResult = async (req, res) => {
     });
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
-
+    console.log("saveResult", saveResult);
     // update result in blockchain
     await contract.submitTransaction(
       "UpdateResult",
@@ -483,6 +498,7 @@ export const updateResult = async (req, res) => {
       saveResult.groupMa,
       saveResult.subjectMS,
       saveResult.studentMS,
+      saveResult.studentName,
       saveResult.teacherMS,
       saveResult.semester,
       saveResult.score,
@@ -503,6 +519,23 @@ export const updateResult = async (req, res) => {
     });
   }
 };
+
+export const updateResultData = async (req, res) => {
+  const id = req.body.data._id;
+  console.log("Result is : ", req.body.groupID)
+  try {
+    const updateResult = await Result.findByIdAndUpdate(
+      id,
+      { $set: req.body.data },
+      { new: true },
+      req.body
+    )
+
+    res.status(200).json({ success: true, message: "Cập nhật dữ liệu kết quả thành công" });
+  } catch (err) {
+    res.status(400).json({ success: false, message: "Cập nhật dữ liệu kết quả thất bại" });
+  }
+}
 
 // delete result
 export const deleteResult = async (req, res) => {
@@ -553,6 +586,40 @@ export const deleteResult = async (req, res) => {
   }
 };
 
+
+// delete result
+export const deleteResultDB = async (req, res) => {
+  const GroupID = req.params.id;
+
+  let groupMa = req.body.groupMa;
+  let studentMS = req.body.studentMS;
+  const test = await Result.find({ groupMa: groupMa, studentMS: studentMS });
+  const ResultDelete = await Result.findOne({
+    groupMa: groupMa,
+    studentMS: studentMS,
+  });
+  const resultID = ResultDelete._id;
+
+  try {
+    // delete result from group
+    await Group.findByIdAndUpdate(GroupID, {
+      $pull: { results: resultID },
+      $inc: { currentslot: -1 },
+    });
+    // delete result in mongodb
+    await Result.findByIdAndDelete(resultID);
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully deleted",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "failed to delete",
+    });
+  }
+};
 // so sánh data resutt mongodb và blockchain
 const compareResult = async (id) => {
   // const MS = studentMS.source;
@@ -575,8 +642,8 @@ const compareResult = async (id) => {
 
   const resultBlock = JSON.parse(result.toString());
 
-  console.log("resultBlock", resultBlock);
-  console.log("resultMongo", resultMongo);
+  console.log("resultBlock 1 ", resultBlock);
+  console.log("resultMongo 2", resultMongo);
 
   // so sánh 2 bên dữ liệu
   const fieldsToCompare = [

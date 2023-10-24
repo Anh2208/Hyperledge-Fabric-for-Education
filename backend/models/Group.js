@@ -5,19 +5,33 @@ const groupSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  groupTen: {
+    type: String,
+    required: true,
+  },
   subjectMa: {
     type: String,
     required: true,
   },
   msgv: {
     type: String,
-    required: true,
-    minlength: 8,
+    // required: true,
+    // minlength: 8,
+  },
+  namegv: {
+    type: String,
+    // required: true,
+    trim: true,
   },
   slot: {
     type: Number,
     required: true,
     min: 0,
+  },
+  currentslot: {
+    type: Number,
+    default: 0,
+    // required: true,
   },
   semester: {
     type: Number,

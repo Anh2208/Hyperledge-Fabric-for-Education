@@ -38,6 +38,10 @@
   section {
     @apply py-[35px];
   }
+
+  .text__heading {
+    display: none;
+  }
 }
 
 @media only screen and (max-width: 768px) {
@@ -48,4 +52,5 @@
   .text__para {
     @apply text-[16px] leading-7 mt-3;
   }
+
 }

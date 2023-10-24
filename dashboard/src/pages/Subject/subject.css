@@ -1,0 +1,6 @@
+.vertical-divider {
+    width: 1px; /* Độ rộng của đường kẻ */
+    background-color: #000; /* Màu của đường kẻ */
+    margin: 0 10px; /* Khoảng cách giữa các ô nhập */
+    height: 100%; /* Chiều cao của đường kẻ (bằng chiều cao của các ô nhập) */
+}

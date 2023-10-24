@@ -8,35 +8,24 @@ import 'react-toastify/dist/ReactToastify.css';
 import "../user.css"
 import { BASE_URL } from '../../../utils/config';
 import LoadingSpinner from '../../../hooks/LoadingSpinner';
-
-const AddAdmin = () => {
+const AddStudent = () => {
 
     const [user, setUser] = useState({
-        ms: "",
         email: "",
+        mssv: "",
+        class: "",
         name: "",
-        phone: "",
+        sdt: "",
         date: "",
+        sex: "male",
         password: ""
     });
 
-    const [phoneError, setPhoneError] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
 
     const handleChange = (e) => {
         const { id, value } = e.target;
-        if (id === "phone") {
-            const phoneRegex = /^((\+84)|0)(9[0-9]|1[2-9])+([0-9]{7})$/g;
-            if (!phoneRegex.test(value)) {
-                // Nếu người dùng nhập số điện thoại không đúng cú pháp thì reset giá trị ô input
-                setUser((prev) => ({ ...prev, [id]: "" }));
-
-                setPhoneError(true);
-                return;
-            }
-        }
-        setPhoneError(false);
         setUser((prev) => ({ ...prev, [id]: value }));
     }
 
@@ -52,23 +41,32 @@ const AddAdmin = () => {
             const axiosInstance = axios.create({
                 withCredentials: true
             });
-            const response = await axiosInstance.post(`${BASE_URL}auth/registerAdmin/`, {
-                adminMS: user.ms,
+            const response = await axiosInstance.post(`${BASE_URL}auth/registerStudent`, {
+                // mssv: user.mssv,
+                // email: user.email,
+                // name: user.name,
+                // sex: user.sex,
+                // password: user.password
                 email: user.email,
+                mssv: user.mssv,
+                class: user.class,
                 name: user.name,
-                sdt: user.phone,
+                sdt: user.sdt,
                 date: user.date,
+                sex: user.sex,
                 password: user.password
             });
             console.log("This is response: ", response);
             // Hiển thị toast khi tạo người dùng thành công
             toast.success('Tạo người dùng thành công');
             setUser({
-                ms: "",
                 email: "",
+                mssv: "",
+                class: "",
                 name: "",
-                phone: "",
+                sdt: "",
                 date: "",
+                sex: "Nam",
                 password: ""
             });
 
@@ -76,14 +74,6 @@ const AddAdmin = () => {
             // alert(err.message);
             // Hiển thị toast khi tạo người dùng thất bại
             // toast.error('Tạo người dùng thất bại');
-            setUser({
-                ms: "",
-                email: "",
-                name: "",
-                phone: "",
-                date: "",
-                password: ""
-            });
             toast.error('Tạo người dùng thất bại', {
                 autoClose: 2000,
                 style: {
@@ -110,16 +100,27 @@ const AddAdmin = () => {
                 theme="colored"
             />
             <div className="user__form">
-            <h1 className='text-[25px] justify-center flex mb-5'>Đăng ký Quản Trị Viên</h1>
+                <h1 className='text-[25px] justify-center flex mb-5'>Đăng ký Sinh Viên</h1>
                 <Form className="user__info-form" onSubmit={handleClick}>
                     <FormGroup className="flex w-full align-items-center mb-4">
                         <div className="input-container w-full">
-                            <label htmlFor="ms">Mã số</label>
+                            <label htmlFor="mssv">Mã số</label>
                             <input
                                 type="text"
-                                placeholder="Mã số Admin"
-                                id="ms"
-                                value={user.ms}
+                                placeholder="Mã số Sinh Viên"
+                                id="mssv"
+                                value={user.mssv}
+                                required
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="input-container w-full">
+                            <label htmlFor="class">Mã lớp</label>
+                            <input
+                                type="class"
+                                placeholder="Mã lớp"
+                                value={user.class}
+                                id="class"
                                 required
                                 onChange={handleChange}
                             />
@@ -142,7 +143,7 @@ const AddAdmin = () => {
                             <label htmlFor="name">Tên</label>
                             <input
                                 type="text"
-                                placeholder="Tên Admin"
+                                placeholder="Tên Sinh Viên"
                                 id="name"
                                 value={user.name}
                                 required
@@ -150,24 +151,36 @@ const AddAdmin = () => {
                             />
                         </div>
                         <div className="input-container w-full">
-                            <label htmlFor="phone">Số điện thoại</label>
-                            <input
-                                type="number"
-                                placeholder="Số điện thoại"
-                                id="phone"
+                            <label htmlFor="sex">Giới tính</label><br />
+                            <select
+                                id="sex"
                                 required
+                                value={user.sex}
                                 onChange={handleChange}
-                            />
-                            {phoneError && <div className="error phone">(*)Số điện thoại không hợp lệ</div>}
+                            >
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                            </select>
                         </div>
-                    </FormGroup>
-                    <FormGroup className="flex align-items-center mb-4">
-                        <div className="input-container">
+                        <div className="input-container w-full">
                             <label htmlFor="date">Ngày sinh</label>
                             <input
                                 type="date"
                                 id="date"
                                 value={user.date}
+                                required
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </FormGroup>
+                    <FormGroup className="flex align-items-center mb-4">
+                        <div className="input-container">
+                            <label htmlFor="sdt">Số điện thoại</label>
+                            <input
+                                type="number"
+                                placeholder="Số điện thoại"
+                                id="sdt"
+                                value={user.sdt}
                                 required
                                 onChange={handleChange}
                             />
@@ -209,4 +222,4 @@ const AddAdmin = () => {
     )
 }
 
-export default AddAdmin
+export default AddStudent

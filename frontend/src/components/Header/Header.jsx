@@ -1,26 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
-import logo_ctu from "../../asset/images/logo.png";
-import student from "../../asset/images/student.png";
-
-const navlinks = [
-  {
-    path: "./home",
-    display: "Home",  
-  },
-  {
-    path: "./student",
-    display: "Student",
-  },
-  {
-    path: "./services",
-    display: "Services",
-  },
-  {
-    path: "./login",
-    display: "Login",
-  },
-];
+import logo_ctu from "../../asset/images/Logo_Dai_hoc_Can_Tho.svg";
+import admin from "../../asset/images/icon_user.png";
 
 const Header = () => {
   return (
@@ -29,27 +10,12 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* ==============Logo============== */}
           <div>
-            <img src={logo_ctu} alt="" />
+            <img className="w-[130px] h-[100px]" src={logo_ctu} alt="" />
           </div>
 
           {/* ==========menu=========== */}
           <div className="navigation">
-            <ul className="menu flex items-center gap-[2.7rem]">
-              {navlinks.map((link, index) => (
-                <li key={index}>
-                  <NavLink
-                    to={link.path}
-                    className={(navClass) =>
-                      navClass.isActive
-                        ? "text-primaryColor text-[16px] leading-7 font-[600]"
-                        : "text-textColor text-[16px] leading-7 font-[500] hover:text-primaryColor"
-                    }
-                  >
-                    {link.display}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
+            <h1 className="font-[600] h-[44px] text-blue-800 text-[50px] flex items-center text__heading">Hệ thống quản lý</h1>
           </div>
 
           {/* =============nav right============== */}
@@ -62,7 +28,7 @@ const Header = () => {
             <div>
               <Link to="/login">
                 <figure className="w-[35px] h-[35px] rounded-full cursor-pointer">
-                  <img src={student} className="w-full rounded-full" alt="" />
+                  <img src={admin} className="w-full rounded-full" alt="" />
                 </figure>
               </Link>
             </div>

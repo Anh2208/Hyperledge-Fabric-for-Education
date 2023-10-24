@@ -4,6 +4,8 @@ import Login from "../pages/Login.jsx"
 
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext.jsx";
+import TeacherHome from "../pages/Teacher/TeacherHome.jsx";
+import TeacherScore from "../pages/Teacher/TeacherScore.jsx";
 // import "../App.css"
 const Router = () => {
   const { user } = useContext(AuthContext);
@@ -32,6 +34,9 @@ const Router = () => {
         <Route path="/" element={<Home />} />
       </Route>
       <Route path="/home" element={<Home />} />
+      <Route path="/teacher" element={<TeacherHome />} />
+      <Route path="/teacher/score" element={<TeacherScore />} />
+      
 
 
     </Routes>

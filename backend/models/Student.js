@@ -22,10 +22,29 @@ const studentSchema = new mongoose.Schema({
     require: true,
     minlength: 8,
   },
+  class: {
+    type: String,
+    require: true,
+  },
   name: {
     type: String,
     required: true,
     trim: true,
+  },
+  sdt: {
+    type: String,
+    validate: {
+      validator: function (value) {
+        // Sử dụng regex để kiểm tra số điện thoại bắt đầu bằng 0 và có đúng 10 số.
+        return /^0\d{9}$/.test(value);
+      },
+      message:
+        "Số điện thoại không hợp lệ, số điện thoại phải bắt đầu bằng 0 và có đúng 10 số.",
+    },
+  },
+  date: {
+    type: String,
+    required: true,
   },
   sex: {
     type: String,
@@ -36,17 +55,12 @@ const studentSchema = new mongoose.Schema({
     required: true,
     minlength: 2,
   },
-  // dateofbirth: {
-  //     type: Date,
-  //     required: true,
-  // },
-
-  publicKey: {  //hex value of key
-      type: String,
-      // required: true,
-      // unique: true,
-      // minlength: 10
-  }
+  // publicKey: {  //hex value of key
+  //   type: String,
+  //   // required: true,
+  //   // unique: true,
+  //   // minlength: 10
+  // }
 });
 
 studentSchema.statics.saltAndHashPassword = async function (password) {

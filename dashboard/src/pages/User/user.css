@@ -103,3 +103,24 @@
 .btn-text {
     z-index: 1;
 }
+
+/* styles.css */
+.custom-button {
+    background-color: #00abfb !important;
+    /* Màu nền */
+    color: #fff;
+    /* Màu chữ */
+    padding: 10px 20px;
+    /* Khoảng cách bên trong nút */
+    border: none;
+    /* Loại bỏ đường viền */
+    cursor: pointer;
+    /* Biến con trỏ thành bàn tay khi trỏ vào nút */
+    border-radius: 5px;
+    /* Bo góc */
+}
+
+.custom-button:hover {
+    background-color: #0056b3 !important;
+    /* Màu nền khi trỏ vào */
+}

@@ -13,6 +13,7 @@ class StoreContract extends Contract {
     groupMa,
     subjectMS,
     studentMS,
+    studentName,
     teacherMS,
     semester,
     score,
@@ -34,6 +35,7 @@ class StoreContract extends Contract {
       groupMa,
       subjectMS,
       studentMS,
+      studentName,
       teacherMS,
       score,
       semester,
@@ -177,6 +179,7 @@ class StoreContract extends Contract {
     groupMa,
     subjectMS,
     studentMS,
+    studentName,
     teacherMS,
     semester,
     score,
@@ -193,6 +196,7 @@ class StoreContract extends Contract {
       groupMa,
       subjectMS,
       studentMS,
+      studentName,
       teacherMS,
       score,
       semester,
@@ -206,7 +210,7 @@ class StoreContract extends Contract {
   async DeleteResult(ctx, resultID) {
     const exists = await this.ResultExists(ctx, resultID);
     if (!exists) {
-      throw new Error(`result ${resultID} does not exist`);
+      throw new Error(`Kết quả ${resultID} không tồn tại`);
     }
 
     await ctx.stub.deleteState(resultID);

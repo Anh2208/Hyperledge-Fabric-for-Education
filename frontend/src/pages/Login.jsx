@@ -40,10 +40,16 @@ const Login = () => {
       console.log("kkk", result);
 
       dispatch({ type: "LOGIN_SUCCESS", payload: result.data });
-      navigate("/admin/home");
+      if (response.role === "teacher") {
+        navigate("/teacher");
+
+      }
+      else {
+        navigate("/admin/home");
+      }
 
     } catch (err) {
-      console.log("lkoi r");
+      console.log("loi r");
       dispatch({ type: "LOGIN_FAILURE", payload: err.message });
     }
   }

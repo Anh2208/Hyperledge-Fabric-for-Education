@@ -13,6 +13,10 @@ const resultSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  studentName: {
+    type: String,
+    // required: true,
+  },
   teacherMS: {
     type: String,
     required: true,
@@ -30,7 +34,6 @@ const resultSchema = new mongoose.Schema({
   },
   date_awarded: {
     type: String,
-    required: true,
     default: new Date().getFullYear().toString(), // Lấy năm hiện tại và chuyển thành chuỗi
     match: /^\d{4}$/, // Sử dụng biểu thức chính quy để đảm bảo chỉ lưu năm (ví dụ: "2022")
   },

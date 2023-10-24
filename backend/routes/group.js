@@ -4,7 +4,9 @@ import {
   createGroup,
   deleteGroup,
   updateGroup,
-  getGroup,
+  getGroupbyID,
+  getAllGroup,
+  getGroupbyMSGV
 } from "../controller/groupController.js";
 
 const router = express.Router();
@@ -19,6 +21,12 @@ router.delete("/:id", deleteGroup);
 router.put("/:id", updateGroup);
 
 // get group
-router.get("/", getGroup);
+router.get("/:id", getGroupbyID);
+
+// get all
+router.get("/getGroup/getAll", getAllGroup);
+
+// get group by msgv
+router.post("/getGroup/getGroupbyMSGV", getGroupbyMSGV);
 
 export default router;

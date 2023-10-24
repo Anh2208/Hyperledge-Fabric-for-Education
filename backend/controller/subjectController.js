@@ -2,9 +2,18 @@ import Subject from "../models/Subject.js";
 
 // create subject
 export const createSubject = async (req, res) => {
-  // const newSubject = new Subject(req.body);
+   const subjectMa = req.body.subjectMa;
 
   try {
+    // Kiểm tra xem mã học phần đã tồn tại hay chưa
+    const existingSubject = await Subject.findOne({ subjectMa });
+
+    if (existingSubject) {
+      return res.status(400).json({
+        success: false,
+        message: "Mã học phần đã tồn tại trong hệ thống.",
+      });
+    }
     const saveSubject = await Subject.create({
       subjectMa: req.body.subjectMa,
       subjectTen: req.body.subjectTen,
@@ -54,7 +63,6 @@ export const updateSubject = async (req, res) => {
 //delete subject
 export const deleteSubject = async (req, res) => {
   const id = req.params.id;
-
   try {
     await Subject.findByIdAndDelete(id);
 

@@ -8,7 +8,7 @@ INCLUDE STYLES AND COMPONENTS
 
 
 .table thead th {
-  color: #adb5bd;
+  color: black;
   font-weight: 400;
 }
 
@@ -255,11 +255,12 @@ body.offcanvas-active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 30px;
+  margin-bottom: 100px;
 }
 
 .content-header .content-title {
   margin-bottom: 0;
+  font-weight: bold;
 }
 
 .inner {
@@ -345,7 +346,7 @@ body.aside-mini .menu-aside .menu-item.has-submenu .menu-link:after {
 }
 
 .menu-aside .menu-item .icon {
-  color: #adb5bd;
+  color: black;
   margin-right: 10px;
   font-size: 18px;
 }
@@ -987,7 +988,7 @@ ul.row-sm {
 }
 
 .btn-light i {
-  color: #adb5bd;
+  color: black;
 }
 
 .btn-light:hover {
@@ -1012,4 +1013,43 @@ ul.row-sm {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.maxtext {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-result {}
+
+.table-result th {
+  min-width: 100px;
+}
+
+.centered-cell {
+  text-align: center;
+  vertical-align: middle;
+  max-width: 80px !important;
+}
+
+.pagination {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination-button {
+  background-color: #007bff;
+  color: #fff;
+  border: 1px solid #007bff;
+  padding: 5px 10px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.pagination-button:hover {
+  background-color: #0056b3;
 }

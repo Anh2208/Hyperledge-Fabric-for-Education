@@ -14,6 +14,8 @@ import {
   getResultByMSGV,
   getResultByGroup,
   getResultHistory,
+  deleteResultDB,
+  updateResultData
 } from "../controller/resultController.js";
 
 const router = express.Router();
@@ -24,12 +26,17 @@ router.post("/:id", createResult);
 // create Result in Blockchain
 router.put("/ResultBlock/create", createResultBlock);
 
-// update Result
+// update Result in blockchain
 router.put("/ResultBlock/update", updateResult);
 
-// delete Result
-router.delete("/:id", deleteResult);
+// update Result in blockchain
+router.put("/ResultMongo/update", updateResultData);
 
+// delete Result
+router.delete("/deleteResult/block/:id", deleteResult);
+
+// delete Result
+router.delete("/deleteResult/mongodb/:id", deleteResultDB);
 //search in mongodb
 // get result by studentMS
 // router.get('/search/ResultMongo', getResultMongo);

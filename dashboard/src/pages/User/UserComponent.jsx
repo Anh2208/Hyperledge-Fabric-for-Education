@@ -21,7 +21,7 @@ const UserComponent = () => {
             setApiEndpoint(`${BASE_URL}admin/getAllStudent`);
         } else if (selectedRole === "teacher") {
             setApiEndpoint(`${BASE_URL}admin/getAllTeacher`);
-        }else{
+        } else {
             setApiEndpoint(`${BASE_URL}admin/getAllAdmin`);
         }
     }, [selectedRole]);
@@ -47,9 +47,9 @@ const UserComponent = () => {
                             </div>
                             <div className='col-lg-2 col-1 col-md-3'>
                                 <select className='form-select' value={selectedRole} onChange={(e) => setselectedRole(e.target.value)} >
-                                    <option value="admin">Admin</option>
-                                    <option value="teacher">Teacher</option>
-                                    <option value="student">Student</option>
+                                    <option value="admin">Quản trị viên</option>
+                                    <option value="teacher">Giảng viên</option>
+                                    <option value="student">Sinh viên</option>
                                 </select>
                             </div>
                         </div>
@@ -58,14 +58,15 @@ const UserComponent = () => {
                     {/* Card body */}
                     {selectedRole === "student" ? (
                         <div className='card-body'>
+                            <h1 className='justify-center text-center text-[30px] mb-3'>Sinh viên</h1>
                             <Table striped bordered hover size="sm" className='w-full'>
                                 <thead>
                                     <tr className='text-left'>
                                         <th>Mã số</th>
                                         <th>Email</th>
-                                        <th>Name</th>
-                                        <th>Sex</th>
-                                        <th>publicKey</th>
+                                        <th>Tên</th>
+                                        <th>Giới tính</th>
+                                        {/* <th>publicKey</th> */}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -76,7 +77,7 @@ const UserComponent = () => {
                                                 <td>{user.email}</td>
                                                 <td>{user.name}</td>
                                                 <td>{user.sex}</td>
-                                                <td className='truncate'>{user.publicKey}</td>
+                                                {/* <td className='truncate'>{user.publicKey}</td> */}
                                             </tr>
                                         )
                                     })}
@@ -85,6 +86,7 @@ const UserComponent = () => {
                         </div>
                     ) : selectedRole === "teacher" ? (
                         <div className='card-body'>
+                            <h1 className='justify-center text-center text-[30px] mb-3'>Giảng viên</h1>
                             <Table striped bordered hover size="sm" className='w-full'>
                                 <thead>
                                     <tr className='text-left'>
@@ -112,6 +114,7 @@ const UserComponent = () => {
                         </div>
                     ) : (
                         <div className='card-body'>
+                            <h1 className='justify-center text-center text-[30px] mb-3'>Quản trị viên</h1>
                             <Table striped bordered hover size="sm" className='w-full'>
                                 <thead>
                                     <tr className='text-left'>
@@ -121,6 +124,7 @@ const UserComponent = () => {
                                         <th>Ngày sinh</th>
                                         <th>SDT</th>
                                         <th>publicKey</th>
+                                        <th style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -128,11 +132,19 @@ const UserComponent = () => {
                                         return (
                                             <tr key={user._id || index}>
                                                 <td>{user.adminMS}</td>
-                                                <td>{user.email}</td>
+                                                <td className='maxtext'>{user.email}</td>
                                                 <td>{user.name}</td>
                                                 <td>{user.date}</td>
                                                 <td>{user.sdt}</td>
                                                 <td className='truncate'>{user.publicKey}</td>
+                                                <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Link
+                                                        to={"/user/edit/" + user._id}
+                                                        className="rounded-full bg-green-200 py-[3px] px-3 text-xs text-green-900 transition-all hover:bg-green-100"
+                                                    >
+                                                        Sửa
+                                                    </Link>
+                                                </td>
                                             </tr>
                                         )
                                     })}

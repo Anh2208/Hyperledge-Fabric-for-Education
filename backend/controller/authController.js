@@ -37,61 +37,64 @@ function prettyJSONString(inputString) {
 }
 //create new student
 export const createStudent = async (req, res) => {
-  //pass trong blockchain chưa mã hóa
 
   try {
     // connect sdk
-    const wallet = await buildWallet(Wallets, walletPath);
-    const gateway = new Gateway();
+    // const wallet = await buildWallet(Wallets, walletPath);
+    // const gateway = new Gateway();
 
-    await gateway.connect(cppUser, {
-      wallet,
-      identity: String(userId),
-      discovery: { enabled: true, asLocalhost: true },
-    });
-    const network = await gateway.getNetwork(channelName);
-    const contract = network.getContract(chaincodeName);
+    // await gateway.connect(cppUser, {
+    //   wallet,
+    //   identity: String(userId),
+    //   discovery: { enabled: true, asLocalhost: true },
+    // });
+    // const network = await gateway.getNetwork(channelName);
+    // const contract = network.getContract(chaincodeName);
 
-    // check user exists
-    const checkLedger = (
-      await contract.evaluateTransaction("CheckUserLedger", req.body.email)
-    ).toString("utf8");
-    const checkWallet = await wallet.get(req.body.email, 'student');
+    // // check user exists
+    // const checkLedger = (
+    //   await contract.evaluateTransaction("CheckUserLedger", req.body.email)
+    // ).toString("utf8");
+    // const checkWallet = await wallet.get(req.body.email, 'student');
 
-    let saveStudent = await Student.create({
-      email: req.body.email,
-      mssv: req.body.mssv,
-      name: req.body.name,
-      sex: req.body.sex,
-      password: req.body.password,
-    });
+    // let saveStudent = await Student.create({
+    //   email: req.body.email,
+    //   mssv: req.body.mssv,
+    //   name: req.body.name,
+    //   sex: req.body.sex,
+    //   password: req.body.password,
+    // });
 
-    if (checkLedger || checkWallet) {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to create student. User exists!!!",
-        });
-      return;
-    }
+    // if (checkLedger || checkWallet) {
+    //   res
+    //     .status(500)
+    //     .json({
+    //       success: false,
+    //       message: "Failed to create student. User exists!!!",
+    //     });
+    //   return;
+    // }
 
-    console.log("Create student in mongodb successfully");
+    // console.log("Create student in mongodb successfully");
 
-    const studentID = saveStudent._id;
-    const studentPass = saveStudent.password;
+    // const studentID = saveStudent._id;
+    // const studentPass = saveStudent.password;
 
-    await registerStudentInLedger(req, studentID, studentPass); //problem
+    // await registerStudentInLedger(req, studentID, studentPass); //problem
 
-    console.log("Create student in blockchain successfully");
+    // console.log("Create student in blockchain successfully");
 
-    const publicKey = await create_user(req.body.email);
+    // const publicKey = await create_user(req.body.email);
 
-    await Student.findByIdAndUpdate(studentID, {
-      $set: { publicKey: publicKey },
-    });
+    // await Student.findByIdAndUpdate(studentID, {
+    //   $set: { publicKey: publicKey },
+    // });
 
-    console.log("Create student in wallet successfully");
+    let createStudent = new Student(req.body);
+
+    const saveStudent = await createStudent.save();
+
+    console.log("Create student successfully");
 
     res
       .status(200)
