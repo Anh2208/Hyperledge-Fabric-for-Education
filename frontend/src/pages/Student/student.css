@@ -1,0 +1,50 @@
+button {
+    font-weight: bold;
+}
+
+h1 {
+    font-weight: bold !important;
+}
+
+h5 {
+    justify-items: center;
+    align-items: center;
+    text-align: center;
+}
+
+.table-score {
+    /* background-color: aqua; */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* margin: 10px; */
+    width: 80%;
+}
+
+.table-score th {
+    background-color: rgb(204,238,247);
+    padding: 5px;
+    border: 1px solid black;
+}
+
+.table-score td {
+    /* background-color: greenyellow; */
+    padding: 5px;
+    border: 1px solid black;
+}
+
+.table-content h5 {
+    font-weight: bold;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.table-content h6 {
+    font-weight: bold;
+    font-size: 0.75rem;
+    width: 80%;
+    color: white;
+    background: rgb(0, 128, 239);
+    border-radius: 10px 10px 0px 0px;
+    text-align: center;
+}

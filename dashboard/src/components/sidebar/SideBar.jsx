@@ -1,15 +1,15 @@
-import { FaUserGroup, FaHouse, FaLayerGroup, FaBook, FaRegCalendarCheck } from "react-icons/fa6";
+import { FaUserGroup, FaHouse, FaLayerGroup, FaBook, FaRegCalendarCheck, FaGraduationCap } from "react-icons/fa6";
 
 import { NavLink } from "react-router-dom";
 
 const sidebarLinks = [
   {
-    name: "Dashboard",
+    name: "Trang chủ",
     href: "/",
     icon: FaHouse,
   },
   {
-    name: "Người dùng",
+    name: "Tài khoản",
     href: "/user",
     icon: FaUserGroup,
   },
@@ -24,9 +24,14 @@ const sidebarLinks = [
     icon: FaLayerGroup,
   },
   {
-    name: "Đăng ký học phần",
+    name: "Điểm",
     href: "/result",
     icon: FaRegCalendarCheck,
+  },
+  {
+    name: "Bằng cấp",
+    href: "/degree",
+    icon: FaGraduationCap,
   },
 ];
 
@@ -36,7 +41,7 @@ function Sidebar() {
       <div className="ie-logo px-3 py-0 text-center xl:text-left">
         <div className="text-xl font-medium text-gray-900 xl:px-3 xl:text-2xl">
           <span className="block xl:hidden">AD</span>
-          <span className="hidden xl:block">Admin</span>
+          <span className="hidden xl:block">Quản trị viên</span>
         </div>
       </div>
       <div className="ie-menu mt-8 h-full">

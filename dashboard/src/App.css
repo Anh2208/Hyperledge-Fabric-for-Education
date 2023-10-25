@@ -918,6 +918,14 @@ ul.row-sm {
   max-width: 100px;
 }
 
+.form-control{
+  outline: none;
+}
+
+.form-select{
+  border: 2;
+}
+
 .form-control:hover,
 .form-select:hover {
   border-color: #4fa607;
@@ -1053,3 +1061,29 @@ ul.row-sm {
 .pagination-button:hover {
   background-color: #0056b3;
 }
+
+h1{
+  font-weight: bold;
+}
+
+.infor-user {
+  /* background-color: red; */
+  justify-content: center;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 1rem;
+}
+
+.infor-content {
+  justify-items: center;
+  align-items: center;
+}
+
+.card-home {
+  /* background-color: red; */
+  justify-content: center;
+  text-align: center;
+  font-weight: bold;
+}
+

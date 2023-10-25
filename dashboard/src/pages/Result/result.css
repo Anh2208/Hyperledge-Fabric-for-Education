@@ -1,0 +1,55 @@
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@media only screen and (max-width: 768px) {
+    .title_list {
+        font-size: 20px;
+    }
+
+    .title_list h1 {
+        font-size: 20px;
+    }
+
+    .title_list a {
+        font-size: 10px;
+    }
+
+}
+
+.title_list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* background: palevioletred; */
+}
+
+.title_list select {
+    width: 350px;
+}
+
+.title_list a {
+    font-weight: bold;
+}
+
+.table-score {
+    /* background-color: aqua; */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: 10px;
+    width: 80%;
+}
+
+.table-score th {
+    background-color: pink;
+    padding: 5px;
+}
+
+.table-score td {
+    /* background-color: greenyellow; */
+    padding: 5px;
+}

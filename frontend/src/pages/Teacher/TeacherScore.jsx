@@ -1,17 +1,21 @@
 import React, { useEffect, useState, useContext } from 'react'
-import { Link } from 'react-router-dom'
-import { FaArrowRotateLeft, FaRegSquarePlus, FaPencil } from 'react-icons/fa6';
-import { BASE_URL } from '../../utils/config';
-import useAxios from "../../hooks/useAxios.js"
 import axios from "axios";
+import { Link } from 'react-router-dom'
+import { BASE_URL } from '../../utils/config';
+import { FaArrowRotateLeft } from 'react-icons/fa6';
 import { AuthContext } from '../../context/AuthContext';
+import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from 'react-toastify';
+import LoadingSpinner from '../../hooks/LoadingSpinner';
 import "./teacher.css"
 
 const TeacherScore = () => {
 
     const { user } = useContext(AuthContext);
     const [courses, setCourses] = useState([]);
-    const [selectedCourse, setSelectedCourse] = useState('');
+    const [selectedCourse, setSelectedCourse] = useState('');// lưu trạng thái chọn học phần
+    const [listedCourse, setListedCourse] = useState(''); // khi click "liệt kê" sẽ lấy value của học phần đang chọn
+    const [isRegistering, setIsRegistering] = useState(false);// tạo trạng thái loading khi nhấn nút "Lưu"
 
     const fetchData = async () => {
         try {
@@ -22,17 +26,17 @@ const TeacherScore = () => {
                 msgv: user.msgv,
             });
 
-            // Sau khi có dữ liệu response, gán giá trị vào courses
             setCourses(response.data.data);
             if (response.data.data && selectedCourse == '') {
                 setSelectedCourse(response.data.data[0].groupTen);
+                setListedCourse(response.data.data[0].groupTen);
+                console.log("listedCourse is", listedCourse);
             }
             console.log("courses is", response.data.data);
 
         } catch (err) {
             console.log("Lỗi dữ liệu");
         }
-
     };
 
     useEffect(() => {
@@ -44,6 +48,11 @@ const TeacherScore = () => {
         setEditedScores({});
         setIsEditing(false);
     };
+    const handleClickListed = (e) => {
+        setListedCourse(selectedCourse);
+        setEditedScores({});
+        setIsEditing(false);
+    }
 
     // Cập nhật điểm sinh viên
     const [isEditing, setIsEditing] = useState(false);
@@ -52,46 +61,79 @@ const TeacherScore = () => {
     // Lưu danh sách
     const handleClickSave = async (e) => {
         e.preventDefault();
+        setIsRegistering(true);
+        console.log("editedScores.length", editedScores);
+        if (Object.keys(editedScores).length === 0) { // Kiểm tra xem editedScores có rỗng hay không
+            toast.error('Không có học phần cần cập nhật');
+            setIsRegistering(false);
+            return;
+        }
+        try {
+            // Tạo một bản sao của các khóa học để cập nhật trạng thái React
+            const updatedCourses = [...courses]; // Tạo một bản sao của courses
 
-        // Tạo một bản sao của các khóa học để cập nhật trạng thái React
-        const updatedCourses = courses.map((course) => {
-            if (course.groupTen === selectedCourse) {
-                const updatedResults = course.results.map((studentResult) => {
-                    const editedScore = editedScores[studentResult.studentMS];
-                    if (editedScore) {
-                        // Gửi dữ liệu lên máy chủ
-                        const axiosInstance = axios.create({
-                            withCredentials: true
-                        });
-                        console.log("studentResult.score", studentResult.score);
-                        if (studentResult.score == undefined) {
-                            // const response = axiosInstance.put(`${BASE_URL}result/ResultMongo/update`, {
-                            const response = axiosInstance.put(`${BASE_URL}result/ResultBlock/create`, {
-                                data: editedScore,
-                                groupID: course._id,
+            // Lặp qua các khóa học
+            for (let i = 0; i < updatedCourses.length; i++) {
+                const course = updatedCourses[i];
+
+                // Kiểm tra xem khóa học có phải là khóa học được chọn
+                if (course.groupTen === selectedCourse) {
+                    const updatedResults = [...course.results]; // Tạo bản sao của kết quả
+
+                    // Lặp qua kết quả của khóa học
+                    for (let j = 0; j < updatedResults.length; j++) {
+                        const studentResult = updatedResults[j];
+                        const editedScore = editedScores[studentResult.studentMS];
+
+                        if (editedScore) {
+                            // Gửi dữ liệu lên máy chủ
+                            const axiosInstance = axios.create({
+                                withCredentials: true
                             });
-                        }else{
-                            const response = axiosInstance.put(`${BASE_URL}result/ResultBlock/update`, {
-                                data: editedScore,
-                                groupID: course._id,
-                            });
+
+                            if (studentResult.score === undefined) {
+                                // const response = await axiosInstance.put(`${BASE_URL}result/ResultMongo/update`, {
+                                const response = await axiosInstance.put(`${BASE_URL}result/ResultBlock/create`, {
+                                    data: editedScore,
+                                    groupID: course._id,
+                                });
+                            } else {
+                                const response = await axiosInstance.put(`${BASE_URL}result/ResultBlock/update`, {
+                                    data: editedScore,
+                                    groupID: course._id,
+                                });
+                                console.log("dasdasda");
+                            }
+                            toast.success(`Cập nhật học phần cho sinh viên ${studentResult.studentMS}`);
+
                         }
+
+                        // Cập nhật kết quả với dữ liệu chỉnh sửa hoặc dữ liệu gốc
+                        updatedResults[j] = editedScore || studentResult;
                     }
-                    return editedScore || studentResult;
-                });
 
-                return {
-                    ...course,
-                    results: updatedResults,
-                };
+                    // Cập nhật khóa học với kết quả đã được cập nhật
+                    updatedCourses[i] = { ...course, results: updatedResults };
+                }
             }
-            return course;
-        });
 
-        // Cập nhật trạng thái React
-        setCourses(updatedCourses);
-        setEditedScores({});
-        setIsEditing(false);
+            // Cập nhật trạng thái React
+            setCourses(updatedCourses);
+            setEditedScores({});
+            setIsEditing(false);
+        } catch (err) {
+            // console.log("loi la ", err.response.data.message);
+            toast.error(err.response.data.message, {
+                autoClose: 2000,
+                style: {
+                    backgroundColor: 'red'
+                }
+            });
+            setCourses(courses);
+            setEditedScores({});
+        } finally {
+            setIsRegistering(false);
+        }
     }
 
     const handleCancel = () => {
@@ -102,6 +144,18 @@ const TeacherScore = () => {
 
     return (
         <>
+            <ToastContainer
+                position="top-right"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss={false}
+                draggable
+                pauseOnHover
+                theme="colored"
+            />
             <section className="px-5 xl:px-0 container pt-5">
                 <div className="max-w-[1170px] mx-auto rounded border-2 border-black">
                     <div className="flex flex-row gap-5 m-5">
@@ -140,20 +194,20 @@ const TeacherScore = () => {
                                     >
                                         {courses?.map((course, index) => (
                                             <option key={index} value={course.groupTen}>
-                                                {course.groupTen}
+                                                {course.groupTen} - {course.groupMa}
                                             </option>
                                         ))}
                                     </select>
                                 ) : null}
                             </label>
                             {/* </div> */}
-                            <button className="bg-primaryColor p-2 text-white font-[600] h-[30px] flex items-center rounded-md">
+                            <button onClick={handleClickListed} className="bg-primaryColor p-2 text-white font-[600] h-[30px] flex items-center rounded-md">
                                 Liệt kê
                             </button>
                         </div>
                     </div>
                     <table className='border table-score mx-auto' >
-                        <thead>
+                        <thead> 
                             <tr>
                                 <th className='border border-black'>STT</th>
                                 <th className='border border-black'>Mã sinh viên</th>
@@ -165,7 +219,7 @@ const TeacherScore = () => {
                         </thead>
                         <tbody>
                             {Array.isArray(courses) ? courses.map((course, index) => (
-                                course.groupTen === selectedCourse && (
+                                course.groupTen === listedCourse && (
                                     course.results.map((studentResult, resultIndex) => {
                                         let grade;
                                         if (studentResult.score >= 8) {
@@ -227,29 +281,41 @@ const TeacherScore = () => {
                         <div className="flex justify-end p-5 gap-5">
                             <div>
                                 {isEditing ? (
-                                    <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleClickSave}>
-                                        <span className=' text-base font-semibold xl:block px-5 py-1'>
-                                            Lưu
-                                        </span>
-                                    </button>
+                                    <>
+                                        {!isRegistering ? (
+                                            <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleClickSave}>
+                                                <span className=' text-base font-semibold xl:block px-5 py-1'>
+                                                    Lưu
+                                                </span>
+                                            </button>
+                                        ) : (
+                                            <LoadingSpinner />
+                                        )}
+                                    </>
 
                                 ) : (
                                     <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={() => setIsEditing(true)}>
                                         <span className=' text-base font-semibold xl:block px-5 py-1'>
-                                            Chỉnh sửa
+                                            Cập nhật
                                         </span>
                                     </button>)
                                 }
                             </div>
 
                             {isEditing ? (
-                                <div>
-                                    <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleCancel}>
-                                        <span className=' text-base font-semibold xl:block px-5 py-1'>
-                                            Hủy
-                                        </span>
-                                    </button>
-                                </div>
+                                <>
+                                    {!isRegistering ? (
+                                        <div>
+                                            <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleCancel}>
+                                                <span className=' text-base font-semibold xl:block px-5 py-1'>
+                                                    Hủy
+                                                </span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        null
+                                    )}
+                                </>
                             ) : (
                                 null
                             )}

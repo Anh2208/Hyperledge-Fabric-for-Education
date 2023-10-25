@@ -6,6 +6,8 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext.jsx";
 import TeacherHome from "../pages/Teacher/TeacherHome.jsx";
 import TeacherScore from "../pages/Teacher/TeacherScore.jsx";
+import StudentHome from "../pages/Student/StudentHome.jsx";
+import StudentResult from "../pages/Student/StudentResult.jsx";
 // import "../App.css"
 const Router = () => {
   const { user } = useContext(AuthContext);
@@ -30,14 +32,14 @@ const Router = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={<PrivateWrapper>...</PrivateWrapper>}>
-      {/* <Route> */}
+        {/* <Route> */}
         <Route path="/" element={<Home />} />
       </Route>
       <Route path="/home" element={<Home />} />
       <Route path="/teacher" element={<TeacherHome />} />
       <Route path="/teacher/score" element={<TeacherScore />} />
-      
-
+      <Route path="/student" element={<StudentHome />} />
+      <Route path="/student/result" element={<StudentResult />} />
 
     </Routes>
     // </Router>

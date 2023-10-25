@@ -37,15 +37,14 @@ const Login = () => {
       });
 
       const result = response.data;
-      console.log("kkk", result);
+      console.log("response.response", response);
 
       dispatch({ type: "LOGIN_SUCCESS", payload: result.data });
-      if (response.role === "teacher") {
+      if (credentials.role === "Teacher") {
         navigate("/teacher");
-
       }
       else {
-        navigate("/admin/home");
+        navigate("/student");
       }
 
     } catch (err) {

@@ -296,10 +296,10 @@ const CourseDetail = () => {
                     </Form>
                     <div className='mt-8 flex'>
                         <div className="user__form p-0">
-                            <h1 className=''>Danh sách sinh viên</h1>
+                            <h1 className='text-[20px]'>Danh sách sinh viên</h1>
                             <div className='card-body'>
                                 {Array.isArray(currentStudents) && currentStudents.length > 0 ? (
-                                    <Table striped bordered hover size="sm" className='flex-1 table-result'>
+                                    <Table striped bordered hover size="sm" className='flex-1 table-result mr-5'>
                                         <thead>
                                             <tr className='text-left'>
                                                 <th>STT</th>
@@ -326,7 +326,7 @@ const CourseDetail = () => {
                                         </tbody>
                                     </Table>
                                 ) : (
-                                    <p>Không có kết quả học tập nào cho lớp này.</p>
+                                    <p>Lớp chưa có sinh viên</p>
                                 )}
                                 <div className="pagination">
                                     {Array.isArray(courses.results) && courses.results.length > 0 ? (

@@ -53,4 +53,30 @@
     @apply text-[16px] leading-7 mt-3;
   }
 
+  .welcome__heading{
+    display: none;
+  }
+
+}
+
+
+.welcome__heading{
+  font-weight: bold;
+}
+
+.select-header{
+  line-height: 30px;
+  justify-content: center;
+  align-items: center;
+}
+
+.select-header button {
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+.select-header a{
+  justify-content: center;
+  align-items: center;
+  border-bottom: 2px solid gray; /* Sử dụng 1px solid black để thêm border đen */
 }

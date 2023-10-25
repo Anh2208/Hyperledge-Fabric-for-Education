@@ -38,6 +38,11 @@
   section {
     @apply py-[35px];
   }
+
+  .text__heading {
+    display: none;
+  }
+
 }
 
 @media only screen and (max-width: 768px) {
@@ -48,4 +53,38 @@
   .text__para {
     @apply text-[16px] leading-7 mt-3;
   }
+
+  .welcome__heading{
+    display: none;
+  }
+
+  .text__table{
+    display: none;
+  }
+}
+
+.custom-button.active {
+  background-color: #0056b3 !important; /* Đổi màu nền thành đỏ khi button được chọn */
+  color: white; /* Đổi màu chữ thành trắng khi button được chọn */
+}
+
+.welcome__heading{
+  font-weight: bold;
+}
+
+.select-header{
+  line-height: 30px;
+  justify-content: center;
+  align-items: center;
+}
+
+.select-header button {
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+.select-header a{
+  justify-content: center;
+  align-items: center;
+  border-bottom: 2px solid gray; /* Sử dụng 1px solid black để thêm border đen */
 }

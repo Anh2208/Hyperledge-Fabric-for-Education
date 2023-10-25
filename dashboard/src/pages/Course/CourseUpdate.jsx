@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { BASE_URL } from '../../utils/config';
 import axios from "axios";
 import useAxios from '../../hooks/useAxios';
 import { Link } from 'react-router-dom';
+import { BASE_URL } from '../../utils/config';
+import { useParams } from 'react-router-dom';
 import { Form, FormGroup, Button } from 'reactstrap';
-import LoadingSpinner from '../../hooks/LoadingSpinner';
-import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from 'react-toastify';
+import LoadingSpinner from '../../hooks/LoadingSpinner';
 
 const CourseUpdate = () => {
     const { id } = useParams();
@@ -195,7 +195,6 @@ const CourseUpdate = () => {
                                 <input
                                     type="text"
                                     id="namegv"
-                                    placeholder="Tên cán bộ giảng dạy"
                                     value={course.namegv || ""}
                                     required
                                     readOnly

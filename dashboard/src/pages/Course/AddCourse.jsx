@@ -3,9 +3,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import { Form, FormGroup, Button } from 'reactstrap';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { BASE_URL } from '../../utils/config';
+import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from 'react-toastify';
 import LoadingSpinner from '../../hooks/LoadingSpinner';
 
 const AddCourse = () => {

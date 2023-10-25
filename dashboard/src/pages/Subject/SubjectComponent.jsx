@@ -71,17 +71,17 @@ const SubjectComponent = () => {
                     </div>
                 </div>
                 <div className='card mb-4'>
-                    <header className='card-header mb-8 flex'>
+                    <header className='card-header mb-8 justify-end flex'>
                         <div className='row gx-3 '>
-                            <div className='col-lg-4 col-md-4 mb-4 me-auto '>
+                            <div className='col-lg-4 col-md-4 m-4 p-2 me-auto border border-black rounded-md'>
                                 <input
                                     type="text"
-                                    placeholder='Mã số học phần'
+                                    placeholder='Tìm kiếm học phần...'
                                     className='form-control'
                                     value={searchText}
                                     onChange={(e) => setSearchText(e.target.value)}
                                 />
-                                <button className=''><FaSearchengin /></button>
+                                {/* <button className=''><FaSearchengin /></button> */}
                             </div>
                         </div>
                     </header>

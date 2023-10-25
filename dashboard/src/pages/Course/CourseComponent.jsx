@@ -18,11 +18,6 @@ const CourseComponent = () => {
         }
     }, [courses]);
 
-    const formatDate = (date) => {
-        const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
-        return new Date(date).toLocaleDateString(undefined, options);
-    }
-
     const deletehandler = (id, groupMa) => {
         try {
             // if (window.confirm("Bạn có thực sự muốn xóa lớp học phần???")) {
@@ -74,15 +69,13 @@ const CourseComponent = () => {
                     </div>
                 </div>
                 <div className='card mb-4'>
-                    <header className='card-header mb-8 flex'>
+                <header className='card-header mb-8 justify-end flex'>
                         <div className='row gx-3 '>
-                            <div className='col-lg-4 col-md-4 mb-4 me-auto '>
+                            <div className='col-lg-4 col-md-4 m-4 p-2 me-auto border border-black rounded-md'>
                                 <input
                                     type="text"
-                                    placeholder='Mã số học phần'
+                                    placeholder='Tìm kiếm học phần...'
                                     className='form-control'
-                                // value={searchText}
-                                // onChange={(e) => setSearchText(e.target.value)}
                                 />
                                 {/* <button className=''><FaSearchengin /></button> */}
                             </div>
@@ -98,14 +91,14 @@ const CourseComponent = () => {
                                     <tr className='text-left'>
                                         <th>STT</th>
                                         <th>Mã Lớp</th>
-                                        <th>Mã học phần</th>
+                                        <th className='max-w-[80px]'>Mã học phần</th>
                                         <th>Tên lớp</th>
                                         <th>Mã giảng viên</th>
                                         <th>Tên giảng viên</th>
-                                        <th>Số lượng</th>
+                                        <th className='centered-cell'>Số lượng</th>
                                         <th>Học kỳ</th>
-                                        <th className='centered-cell' style={{ display: '', justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
-                                        <th className='centered-cell'>Đăng ký sinh viên</th>
+                                        <th className='centered-cell min-w-[100px]'>Đăng ký sinh viên</th>
+                                        <th className='centered-cell' style={{justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -119,15 +112,25 @@ const CourseComponent = () => {
                                                 <td>{course.msgv}</td>
                                                 <td>{course.namegv}</td>
                                                 {course.currentslot ? (
-                                                    <td>
+                                                    <td className='centered-cell'>
                                                         {course.currentslot}/{course.slot}
                                                     </td>
                                                 ) : (
-                                                    <td>
+                                                    <td className='centered-cell'>
                                                         0/{course.slot}
                                                     </td>
                                                 )}
                                                 <td>{course.semester}</td>
+                                                <td className='centered-cell'>
+                                                    <button>
+                                                        <Link
+                                                            to={`/course/detail/${course._id}`}
+                                                            className="rounded-full bg-blue-300 py-[3px] px-3 text-xs text-green-900 transition-all hover:bg-blue-100"
+                                                        >
+                                                            Đăng ký
+                                                        </Link>
+                                                    </button>
+                                                </td>
                                                 <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                                     <button>
                                                         <Link
@@ -143,16 +146,6 @@ const CourseComponent = () => {
                                                         onClick={() => deletehandler(course._id, course.groupMa)}
                                                     >
                                                         Xóa
-                                                    </button>
-                                                </td>
-                                                <td className='centered-cell'>
-                                                    <button>
-                                                        <Link
-                                                            to={`/course/detail/${course._id}`}
-                                                            className="rounded-full bg-blue-300 py-[3px] px-3 text-xs text-green-900 transition-all hover:bg-blue-100"
-                                                        >
-                                                            Đăng ký
-                                                        </Link>
                                                     </button>
                                                 </td>
                                             </tr>

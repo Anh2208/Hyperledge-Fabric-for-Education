@@ -32,25 +32,24 @@ const AddUser = () => {
         <>
             <section className="content-main">
                 <div className="content-header mb-0">
-                    {/* <h2 className="content-title">Thêm người dùng</h2> */}
-                    <div className='rounded-md border-2 border-black'>
-                        <Link to={"/user"} className="flex justify-between">
-                            <span className='items-center rounded-md px-1 py-2'>
-                                <FaArrowRotateLeft />
-                            </span>
-                            <span className='hidden text-base font-semibold xl:block p-1'>
-                                Quay lại
-                            </span>
+                    <h2 className="content-title">Thêm người dùng</h2>
+                    <div>
+                        <Link to="/course" className="btn btn-primary">
+                            <i className="material-icons md-plus"></i>Trở về
                         </Link>
                     </div>
+
+                </div>
+                <div className='flex justify-end'>
                     <ButtonGroup className='b top-0 m-0'>
                         <Button
-                            className={`custom-button ${selectedRole === "admin" ? "active" : ""} className='b top-0 m-0'`}
+                            className={`custom-button ${selectedRole === "admin" ? "active" : ""}`}
                             color="danger"
                             onClick={() => handleRoleSelection("admin")}
                         >
                             Admin
                         </Button>
+
                         <Button
                             className={`custom-button ${selectedRole === "teacher" ? "active" : ""}`}
                             color="warning"
@@ -67,7 +66,6 @@ const AddUser = () => {
                         </Button>
                     </ButtonGroup>
                 </div>
-
                 {getRoleComponent()}
             </section>
         </>

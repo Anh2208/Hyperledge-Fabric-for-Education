@@ -13,6 +13,9 @@ const resultSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  subjectTen: {
+    type: String,
+  },
   studentName: {
     type: String,
     // required: true,
@@ -20,6 +23,9 @@ const resultSchema = new mongoose.Schema({
   teacherMS: {
     type: String,
     required: true,
+  },
+  subjectSotc: {
+    type: String,
   },
   score: {
     type: Number,

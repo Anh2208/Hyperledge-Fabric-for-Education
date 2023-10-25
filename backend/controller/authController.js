@@ -297,7 +297,7 @@ export const userLogin = async (req, res) => {
       .status(200)
       .json({
         token,
-        data: { ...rest },
+        data: { ...rest, role },//thêm role vào jwt
       });
   } catch (err) {
     res

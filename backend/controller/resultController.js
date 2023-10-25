@@ -1,6 +1,7 @@
 import Result from "../models/Result.js";
 import Group from "../models/Group.js";
-
+import Subject from "../models/Subject.js";
+import mongoose from "mongoose";
 import { Wallets, Gateway } from "fabric-network";
 import FabricCAServices from "fabric-ca-client";
 import {
@@ -33,10 +34,66 @@ function prettyJSONString(inputString) {
 }
 
 // create result in blockchain
+// export const createResultBlock = async (req, res) => {
+//   const ID = req.body.data._id;
+//   // const id = req.body.data._id;
+//   console.log("Result is : ", req.body.groupID)
+//   try {
+//     //connect to hyperledger fabric network and contract
+//     const wallet = await buildWallet(Wallets, walletPath);
+//     const gateway = new Gateway();
+
+//     await gateway.connect(cppUser, {
+//       wallet,
+//       identity: String(userId),
+//       discovery: { enabled: true, asLocalhost: true },
+//     });
+//     const network = await gateway.getNetwork(channelName);
+//     const contract = network.getContract(chaincodeName);
+
+//     try {
+
+//       await Result.findByIdAndUpdate(ID, { $set: req.body.data }, { new: true });
+
+//       const saveResult = await Result.findById(ID);
+//       // console.log("saveResult", saveResult);
+
+//       await contract.submitTransaction(
+//         "CreateResult",
+//         ID,
+//         saveResult.groupMa,
+//         saveResult.subjectMS,
+//         saveResult.studentMS,
+//         saveResult.studentName,
+//         saveResult.teacherMS,
+//         saveResult.semester,
+//         saveResult.score,
+//         saveResult.date_awarded,
+//       );
+//       res
+//         .status(200)
+//         .json({
+//           success: true,
+//           message: "Create result successfully!!!",
+//           data: saveResult,
+//         });
+//     } finally {
+//       gateway.disconnect();
+//     }
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Lưu điểm sinh viên thất bại!!!" });
+//   }
+// };
+
 export const createResultBlock = async (req, res) => {
   const ID = req.body.data._id;
   // const id = req.body.data._id;
   console.log("Result is : ", req.body.groupID)
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     //connect to hyperledger fabric network and contract
     const wallet = await buildWallet(Wallets, walletPath);
@@ -51,11 +108,11 @@ export const createResultBlock = async (req, res) => {
     const contract = network.getContract(chaincodeName);
 
     try {
-      await Result.findByIdAndUpdate(ID, { $set: req.body.data }, { new: true });
+      await Result.findByIdAndUpdate(ID, { $set: req.body.data }, { new: true, session });
 
       const saveResult = await Result.findById(ID);
-      // console.log("saveResult", saveResult);
 
+      console.log("req.body.data la:", req.body.data.score);
       await contract.submitTransaction(
         "CreateResult",
         ID,
@@ -65,24 +122,33 @@ export const createResultBlock = async (req, res) => {
         saveResult.studentName,
         saveResult.teacherMS,
         saveResult.semester,
-        saveResult.score,
+        // saveResult.score,
+        req.body.data.score,
         saveResult.date_awarded,
       );
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Create result successfully!!!",
-          data: saveResult,
-        });
-    } finally {
+
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(200).json({
+        success: true,
+        message: "Create result successfully!!!",
+        data: saveResult,
+      });
+    } catch (error) {
+      console.log("error la:", error);
+
+      await session.abortTransaction();
+      session.endSession();
+      gateway.disconnect();
+      res.status(500).json({ success: false, message: "Lưu điểm sinh viên vào blockchain thất bại !!!" });
+    }finally{
       gateway.disconnect();
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to create result. Try again" });
-  }
+    session.endSession();
+    res.status(500).json({ success: false, message: "Lưu điểm sinh viên thất bại !!!" });
+  } 
 };
 
 // create result in mongodb
@@ -109,15 +175,24 @@ export const createResult = async (req, res) => {
         });
       return;
     }
-    const saveResult = await newResult.save();
+    const student = await Student.findOne({ mssv: req.body.studentMS });
 
-    const student = await Student.findOne({ mssv: saveResult.studentMS });
+    if(!student){
+      res.status(400).json({ success: false, message: "Sinh viên không tồn tại!!!" });
+      return;
+    }
+
+    const saveResult = await newResult.save();
+    const subject = await Subject.findOne({ subjectMa: newResult.subjectMS});
+
     if (student) {
       await Result.findByIdAndUpdate(saveResult._id, {
         studentName: student.name,
+        subjectSotc: subject.subjectSotc,
+        subjectTen: subject.subjectTen,
       })
     } else {
-      res.status(400).json({ success: false, message: "Sinh viên không tồn tại" });
+      res.status(400).json({ success: false, message: "Lỗi lưu trữ" });
       return;
     }
     // update id result of the group
@@ -187,8 +262,7 @@ export const getResultHistory = async (req, res) => {
 };
 
 export const getAllResultByStudentMS = async (req, res) => {
-  const MSSV = req.body.mssv;
-
+  const MSSV = req.query.mssv;
   try {
     // connect to ledger and contract
     const wallet = await buildWallet(Wallets, walletPath);
@@ -393,10 +467,10 @@ export const getResultByID = async (req, res) => {
 
 // get result by mssv
 export const getResultByMSSV = async (req, res) => {
-  const studentMS = req.body.studentMS;
+  const studentMS = req.query.studentMS;
 
   try {
-    const result = await Result.findOne({ studentMS: studentMS });
+    const result = await Result.find({ studentMS: studentMS });
 
     res
       .status(200)
@@ -513,6 +587,7 @@ export const updateResult = async (req, res) => {
       data: updateResult,
     });
   } catch (error) {
+    console.log("error is", error);
     res.status(500).json({
       success: false,
       message: "failed to update result",
