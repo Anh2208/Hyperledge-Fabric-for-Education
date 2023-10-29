@@ -47,3 +47,12 @@
     /* background-color: greenyellow; */
     padding: 5px;
 }
+
+.table_export {
+    width: 630px;
+    border-collapse: unset;
+}
+
+.table_export th {
+    font-weight: normal;
+}

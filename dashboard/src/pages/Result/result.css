@@ -1,7 +1,7 @@
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 @media only screen and (max-width: 768px) {
@@ -53,3 +53,84 @@ input::-webkit-inner-spin-button {
     /* background-color: greenyellow; */
     padding: 5px;
 }
+
+.table_export {
+    width: 630px;
+    border-collapse: unset;
+}
+
+.table_export th {
+    font-weight: normal;
+}
+
+/* CSS */
+.table_student {
+    border-collapse: collapse;
+     /* background-color: aqua; */
+     justify-content: center;
+     align-items: center;
+     text-align: center;
+     /* margin: 10px; */
+     width: 100%;
+}
+
+.table_student th,
+.table_student td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+.table_student tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+
+.table-score {
+    /* background-color: aqua; */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* margin: 10px; */
+    width: 80%;
+}
+
+.table-score th {
+    background-color: cyan;
+    padding: 5px;
+    border: 1px solid black;
+}
+
+.table-score td {
+    /* background-color: greenyellow; */
+    padding: 5px;
+    border: 1px solid black;
+}
+
+.table-content h5 {
+    font-weight: bold;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.table-content h6 {
+    font-weight: bold;
+    font-size: 0.75rem;
+    width: 80%;
+    color: white;
+    background: rgb(0, 128, 239);
+    border-radius: 10px 10px 0px 0px;
+    text-align: center;
+}
+
+.table-content h5 {
+    font-weight: bold;
+    font-size: 0.75rem;
+    width: 80%;
+    color: white;
+    background: rgb(0, 128, 239);
+    border-radius: 10px 10px 0px 0px;
+    text-align: center;
+    margin-bottom: 0px !important;
+}
+

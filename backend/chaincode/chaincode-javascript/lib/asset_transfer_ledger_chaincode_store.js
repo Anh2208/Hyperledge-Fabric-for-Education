@@ -3,6 +3,7 @@
 // const { Contract } = require('fabric-contract-api');
 const { Contract } = require("fabric-contract-api");
 const ClientIdentity = require('fabric-shim').ClientIdentity;
+const { Certificate } = require('@fidm/x509')
 const KJUR = require("jsrsasign");
 
 class StoreContract extends Contract {
@@ -18,20 +19,25 @@ class StoreContract extends Contract {
     semester,
     score,
     date_awarded,
+    access
   ) {
-    const exists = await this.ResultExists(ctx, resultID);
-    if (exists) {
-      throw new Error("Kết quả này đã tồn tại.");
-    }
-    console.log("test console.log in chaincode");
+    // kiểm tra role của người dùng
     let cid = new ClientIdentity(ctx.stub);
-    if (!cid.assertAttributeValue('role', 'admin')) {
+    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin')) {
       throw new Error('Not a valid User');
+    }
+    if (cid.assertAttributeValue('role', 'teacher')) {
+      const currentDate = new Date();
+      const accessDate = new Date(access);
+
+      if (currentDate > accessDate) {
+        throw new Error('The grading deadline has expired');
+      }
     }
 
     let result = {
       docType: "result",
-      resultID,
+      // resultID,
       groupMa,
       subjectMS,
       studentMS,
@@ -42,22 +48,39 @@ class StoreContract extends Contract {
       date_awarded,
     };
 
-    await ctx.stub.putState(resultID, Buffer.from(JSON.stringify(result)));
+    const exists = await this.ResultExists(ctx, subjectMS, studentMS);// kiểm tra kết quả trong world state
+    if (!exists) {
+      await ctx.stub.putState(resultID, Buffer.from(JSON.stringify(result)));
+    } else {
+      // kiểm tra kết quả học tập của sinh viên ở học kỳ hiện tại
+      const existsSemester = await this.ResultExistsSemester(ctx, subjectMS, studentMS, semester, date_awarded);// kiểm tra kết quả trong world state
+      if (existsSemester) {
+        throw Error('Result exists in blockchain');
+      }
+      await ctx.stub.putState(resultID, Buffer.from(JSON.stringify(result)));
+    }
   }
 
   // GetAssetHistory returns the chain of custody for an asset since issuance.
-  async GetResultHistory(ctx, resultID) {
+  async GetResultHistoryByID(ctx, resultID) {
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'admin')) {
       console.log('User does not have the required role ("test").');
       throw new Error('Not a valid User');
     }
     let resultsIterator = await ctx.stub.getHistoryForKey(resultID);
-    let results = await this._GetAllResults(resultsIterator, true);
+    let results = await this._GetAllResults(ctx, resultsIterator, true);
 
     return JSON.stringify(results);
   }
+  async GetResultHistoryBySubjectAndStudent(ctx, subjectMS, studentMS) {
+    // Sử dụng phương thức getHistoryForKey để lấy lịch sử thay đổi của key cụ thể
+    const key = `${subjectMS}_${studentMS}`;
+    let resultsIterator = await ctx.stub.getHistoryForKey(key);
+    let resultHistory = await this._GetAllResults(ctx, resultsIterator, true);
 
+    return JSON.stringify(resultHistory);
+  }
 
   async GetTransactionCreator(ctx, txId) {
     const creator = await ctx.stub.getCreator();
@@ -65,8 +88,7 @@ class StoreContract extends Contract {
     return JSON.stringify(creator);
   }
 
-  // get all result by studentMS
-  async getAllResultByStudentMS(ctx, studentMS) {
+  async getAllResultByStudentMS(ctx, studentMS) {// get all result by studentMS
     let queryString = {};
     queryString.selector = {};
     queryString.selector.docType = "result";
@@ -77,8 +99,7 @@ class StoreContract extends Contract {
     ); //shim.success(queryResults);
   }
 
-  // get all result by teacherMS
-  async getAllResultByTeacherMS(ctx, teacherMS) {
+  async getAllResultByTeacherMS(ctx, teacherMS) {// get all result by teacherMS
     let queryString = {};
     queryString.selector = {};
     queryString.selector.docType = "result";
@@ -89,20 +110,16 @@ class StoreContract extends Contract {
     ); //shim.success(queryResults);
   }
 
-  // get all result by resultID
-  async getAllResultByID(ctx, resultID) {
-    let queryString = {};
-    queryString.selector = {};
-    queryString.selector.docType = "result";
-    queryString.selector.resultID = resultID;
-    return await this.GetQueryResultForQueryString(
-      ctx,
-      JSON.stringify(queryString),
-    ); //shim.success(queryResults);
+  async getSingleResult(ctx, resultID) {// get all result by resultID
+    const resultState = await ctx.stub.getState(resultID);
+    if(resultState && resultState.length > 0){
+      return JSON.parse(resultState.toString("utf8"));
+    }
+    throw new Error("Kết quả không tồn tại");
   }
 
-  // get all result by group
-  async getAllResultByGroup(ctx, groupMa, date_awarded) {
+
+  async getAllResultByGroup(ctx, groupMa, date_awarded) {// get all result by group
     let queryString = {};
     queryString.selector = {};
     queryString.selector.docType = "result";
@@ -114,8 +131,8 @@ class StoreContract extends Contract {
     ); //shim.success(queryResults);
   }
 
-  // get all result by docType
-  async getAllResultByType(ctx, docType) {
+
+  async getAllResultByType(ctx, docType) {// get all result by docType
     let queryString = {};
     queryString.selector = {};
     queryString.selector.docType = docType;
@@ -129,24 +146,25 @@ class StoreContract extends Contract {
   // Result set is built and returned as a byte array containing the JSON results.
   async GetQueryResultForQueryString(ctx, queryString) {
     let resultsIterator = await ctx.stub.getQueryResult(queryString);
-    let results = await this._GetAllResults(resultsIterator, false);
+    let results = await this._GetAllResults(ctx, resultsIterator, false);
 
     return JSON.stringify(results);
   }
 
-  async _GetAllResults(iterator, isHistory) {
+  async _GetAllResults(ctx, iterator, isHistory) {
     let allResults = [];
     let res = await iterator.next();
     while (!res.done) {
       if (res.value && res.value.value.toString()) {
         let jsonRes = {};
-        console.log(res.value.value.toString("utf8"));
+
         if (isHistory && isHistory === true) {
           jsonRes.TxId = res.value.txId;
           // jsonRes.Timestamp = res.value.timestamp.seconds;
           jsonRes.Timestamp = new Date(res.value.timestamp.seconds * 1000); // Chuyển đổi giây sang mili giây
-
-          // jsonRes.IsDelete = res.value;
+          jsonRes.TestValue = res.value;
+          jsonRes.isDelete = res.value.isDelete;
+          
           try {
             jsonRes.Value = JSON.parse(res.value.value.toString("utf8"));
           } catch (err) {
@@ -184,15 +202,31 @@ class StoreContract extends Contract {
     semester,
     score,
     date_awarded,
+    access
   ) {
-    const exists = await this.ResultExists(ctx, resultID);
-    if (!exists) {
-      throw new Error(`Result ${resultID} does not exist`);
+    // kiểm tra role của người dùng
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin')) {
+      throw new Error('Not a valid User');
+    }
+    if (cid.assertAttributeValue('role', 'teacher')) {
+      const currentDate = new Date();
+      const accessDate = new Date(access);
+
+      if (currentDate > accessDate) {
+        throw new Error('The grading deadline has expired');
+      }
+    }
+
+    // const exists = await this.CheckResultExists(ctx, subjectMS, studentMS);
+    const exists = await this.ResultExistsByID(ctx, resultID);
+    if (exists == false) {
+      throw Error('Result does not exists in blockchain');
     }
 
     let result = {
       docType: "result",
-      resultID,
+      // resultID,
       groupMa,
       subjectMS,
       studentMS,
@@ -204,11 +238,12 @@ class StoreContract extends Contract {
     };
 
     await ctx.stub.putState(resultID, Buffer.from(JSON.stringify(result)));
+
   }
 
   //Delete Result
   async DeleteResult(ctx, resultID) {
-    const exists = await this.ResultExists(ctx, resultID);
+    const exists = await this.ResultExistsByID(ctx, resultID);
     if (!exists) {
       throw new Error(`Kết quả ${resultID} không tồn tại`);
     }
@@ -309,11 +344,61 @@ class StoreContract extends Contract {
     return studentState && studentState.length > 0;
   }
 
-  async ResultExists(ctx, resultID) {
+  async ResultExistsByID(ctx, resultID) {
     //check result of blockchain
     const resultState = await ctx.stub.getState(resultID);
     return resultState && resultState.length > 0;
   }
+
+  async ResultExists(ctx, subjectMS, studentMS) {
+    let queryString = {};
+    queryString.selector = {};
+    queryString.selector.subjectMS = subjectMS;
+    queryString.selector.studentMS = studentMS;
+    const result = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    if (result !== "[]") {
+      return true
+    }
+    return false
+  }
+
+  async ResultExistsSemester(ctx, subjectMS, studentMS, semester, date_awarded) {
+    let queryString = {};
+    queryString.selector = {};
+    queryString.selector.subjectMS = subjectMS;
+    queryString.selector.studentMS = studentMS;
+    queryString.selector.semester = semester;
+    queryString.selector.date_awarded = date_awarded;
+    const result = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    if (result !== "[]") {
+      return true
+    }
+    return false
+  }
+
+  async CheckResultDetailExists(ctx, subjectMS, studentMS) {
+    let queryString = {};
+    queryString.selector = {};
+    queryString.selector.subjectMS = subjectMS;
+    queryString.selector.studentMS = studentMS;
+    const result = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    if (result !== "[]") {
+      return true;
+    }
+    return false;
+  }
+
+  // async getAllResultByGroup(ctx, groupMa, date_awarded) {// get all result by group
+  //   let queryString = {};
+  //   queryString.selector = {};
+  //   queryString.selector.docType = "result";
+  //   queryString.selector.groupMa = groupMa;
+  //   queryString.selector.date_awarded = date_awarded;
+  //   return await this.GetQueryResultForQueryString(
+  //     ctx,
+  //     JSON.stringify(queryString),
+  //   ); //shim.success(queryResults);
+  // }
 
   async CheckUserLedger(ctx, Email) {
     const userState = await ctx.stub.getState(Email);
@@ -321,36 +406,31 @@ class StoreContract extends Contract {
     return userState.toString("utf8");
     // return JSON.stringify(userState);
   }
+
+  // // InitLedger creates sample assets in the ledger
+  async InitLedger(ctx) {
+    const teachers = [
+      {
+        teacherID: "6536259342e4293df7ec6342",
+        teacherEmail: "anhg1906001@gmail.com",
+        teacherMS: "G1906001",
+        teacherName: "Tuấn Anh",
+        teacherSex: "male",
+        teacherPass: "Pdabu3sODugxAll7U1KZVe09nU8Q1VXlsB3vZGVw7pzEamiw20pjC",
+      },
+    ];
+
+    for (const teacher of teachers) {
+      await this.CreateTeacher(
+        ctx,
+        teacher.teacherID,
+        teacher.teacherEmail,
+        teacher.teacherMS,
+        teacher.teacherName,
+        teacher.teacherSex,
+        teacher.teacherPass
+      );
+    }
+  }
 }
 module.exports = StoreContract;
-
-// async GetAllResult(ctx) {
-//     const startKey = '';
-//     const endKey = '';
-
-//     const iterator = await ctx.stub.getStateByRange(startKey, endKey);
-//     const allResult = await this._GetAllResults(iterator);
-
-//     return JSON.stringify(allResult);
-// }
-
-// async _GetAllResults(iterator) {
-//     const allResults = [];
-//     let res = await iterator.next();
-
-//     while (!res.done) {
-//         if (res.value && res.value.value.toString()) {
-//             const jsonRes = {
-//                 Key: res.value.key,
-//                 Record: JSON.parse(res.value.value.toString('utf8'))
-//             };
-
-//             allResults.push(jsonRes);
-//         }
-
-//         res = await iterator.next();
-//     }
-
-//     iterator.close();
-//     return allResults;
-// }

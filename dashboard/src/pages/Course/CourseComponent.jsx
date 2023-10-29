@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom'
-import Table from "react-bootstrap/Table";
 import useAxios from '../../hooks/useAxios';
 import { BASE_URL } from '../../utils/config';
 import { toast, ToastContainer } from 'react-toastify';
@@ -86,18 +85,18 @@ const CourseComponent = () => {
                         {loading && <h4 className="text-center pt-5">Loading.....</h4>}
                         {error && <h4 className="text-center pt-5">{error}</h4>}
                         {!loading && !error && (
-                            <Table striped bordered hover size="sm" className='w-full'>
+                            <table size="sm" className='w-full'>
                                 <thead>
-                                    <tr className='text-left'>
+                                    <tr className='text-center'>
                                         <th>STT</th>
                                         <th>Mã Lớp</th>
-                                        <th className='max-w-[80px]'>Mã học phần</th>
+                                        <th className='max-w-[90px]'>Mã học phần</th>
                                         <th>Tên lớp</th>
                                         <th>Mã giảng viên</th>
-                                        <th>Tên giảng viên</th>
+                                        <th className='text-left'>Tên giảng viên</th>
                                         <th className='centered-cell'>Số lượng</th>
                                         <th>Học kỳ</th>
-                                        <th className='centered-cell min-w-[100px]'>Đăng ký sinh viên</th>
+                                        <th className='centered-cell min-w-[100px]'>Đăng ký</th>
                                         <th className='centered-cell' style={{justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
                                     </tr>
                                 </thead>
@@ -107,9 +106,9 @@ const CourseComponent = () => {
                                             <tr key={course._id || index} className='align-items-center'>
                                                 <td>{index + 1}</td>
                                                 <td>{course.groupMa}</td>
-                                                <td>{course.subjectMa}</td>
+                                                <td className='text-center'>{course.subjectMa}</td>
                                                 <td>{course.groupTen}</td>  
-                                                <td>{course.msgv}</td>
+                                                <td className='text-center'>{course.msgv}</td>
                                                 <td>{course.namegv}</td>
                                                 {course.currentslot ? (
                                                     <td className='centered-cell'>
@@ -120,7 +119,7 @@ const CourseComponent = () => {
                                                         0/{course.slot}
                                                     </td>
                                                 )}
-                                                <td>{course.semester}</td>
+                                                <td className='text-center'>{course.semester}</td>
                                                 <td className='centered-cell'>
                                                     <button>
                                                         <Link
@@ -152,7 +151,7 @@ const CourseComponent = () => {
                                         )
                                     })}
                                 </tbody>
-                            </Table>
+                            </table>
                         )}
                     </div>
                 </div>

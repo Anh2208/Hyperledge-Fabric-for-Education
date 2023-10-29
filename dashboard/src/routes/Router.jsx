@@ -15,6 +15,11 @@ import CourseUpdate from '../pages/Course/CourseUpdate'
 import ResultComponent from '../pages/Result/ResultComponent'
 import CourseDetail from '../pages/Course/CourseDetail'
 import DegreeComponent from "../pages/Degree/DegreeComponent"
+import StudentResult from '../pages/Student/StudentResult'
+import ResultExport from '../pages/Result/ResultExport'
+import DetailResult from '../pages/Student/DetailResult'
+import Semester from '../pages/Student/Semester'
+import PrintResult from '../pages/Student/PrintResult'
 
 const Router = () => {
     return (
@@ -46,6 +51,11 @@ const Router = () => {
                                         <Route path='/subject/add' element={<AddSubject />} />
                                         <Route path='/subject/edit/:id' element={<EditSubject />} />
                                         <Route path='/result' element={<ResultComponent />} />
+                                        <Route path='/result/export/:id' element={<ResultExport />} />
+                                        <Route path='/student' element={<StudentResult />} />
+                                        <Route path='/student/result/:id' element={<DetailResult />} />
+                                        <Route path='/student/semester/:id' element={<Semester />} />
+                                        <Route path='/student/semester/print/:id' element={<PrintResult />} />
                                         <Route path='/degree' element={<DegreeComponent />} />
                                     </Routes>
                                 </div>

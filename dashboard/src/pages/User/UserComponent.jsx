@@ -69,7 +69,7 @@ const UserComponent = () => {
                             {selectedRole === "student" ? (
                                 <div className='card-body'>
                                     <h1 className='justify-center text-center text-[30px] mb-3'>Sinh viên</h1>
-                                    <Table striped bordered hover size="sm" className='w-full overflow-auto'>
+                                    <table size="sm" className='w-full overflow-auto'>
                                         <thead>
                                             <tr className='text-left'>
                                                 <th>Mã lớp</th>
@@ -98,12 +98,12 @@ const UserComponent = () => {
                                                 )
                                             })}
                                         </tbody>
-                                    </Table>
+                                    </table>
                                 </div>
                             ) : selectedRole === "teacher" ? (
                                 <div className='card-body'>
                                     <h1 className='justify-center text-center text-[30px] mb-3'>Giảng viên</h1>
-                                    <Table striped bordered hover size="sm" className='w-full'>
+                                    <table size="sm" className='w-full'>
                                         <thead>
                                             <tr className='text-left'>
                                                 <th>Mã số</th>
@@ -126,12 +126,12 @@ const UserComponent = () => {
                                                 )
                                             })}
                                         </tbody>
-                                    </Table>
+                                    </table>
                                 </div>
                             ) : (
                                 <div className='card-body'>
                                     <h1 className='justify-center text-center text-[30px] mb-3'>Quản trị viên</h1>
-                                    <Table striped bordered hover size="sm" className='w-full'>
+                                    <table  size="sm" className='w-full'>
                                         <thead>
                                             <tr className='text-left'>
                                                 <th>Mã số</th>
@@ -165,7 +165,7 @@ const UserComponent = () => {
                                                 )
                                             })}
                                         </tbody>
-                                    </Table>
+                                    </table>
                                 </div>
                             )}
                         </>

@@ -7,6 +7,7 @@ import { BASE_URL } from '../../utils/config';
 import axios from "axios";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// import "./subject.css"
 
 const SubjectComponent = () => {
 
@@ -90,14 +91,14 @@ const SubjectComponent = () => {
                         {error && <h4 className="text-center pt-5">{error}</h4>}
                         {!loading && !error && (
 
-                            <Table striped bordered hover size="sm" className='w-full'>
+                            <table size="sm" className='w-full'>
                                 <thead>
-                                    <tr className='text-left'>
+                                    <tr className='text-center'>
                                         <th>STT</th>
-                                        <th>Mã học phần</th>
+                                        <th className='text-left'>Mã học phần</th>
                                         <th>Tên học phần</th>
                                         <th>Số tín chỉ</th>
-                                        <th style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
+                                        <th className='hanh-dong' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -111,10 +112,10 @@ const SubjectComponent = () => {
                                         .map((subject, index) => {
                                             return (
                                                 <tr key={subject._id || index}>
-                                                    <td>{index + 1}</td>
+                                                    <td className='text-center'>{index + 1}</td>
                                                     <td>{subject.subjectMa}</td>
                                                     <td>{subject.subjectTen}</td>
-                                                    <td>{subject.subjectSotc}</td>
+                                                    <td className='text-center'>{subject.subjectSotc}</td>
                                                     <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                                         <Link
                                                             to={`/subject/edit/${subject._id}`}
@@ -135,7 +136,7 @@ const SubjectComponent = () => {
                                         })}
 
                                 </tbody>
-                            </Table>
+                            </table>
                         )}
                     </div>
                 </div>

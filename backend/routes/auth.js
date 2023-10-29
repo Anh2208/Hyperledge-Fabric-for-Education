@@ -4,6 +4,7 @@ import {
   createTeacher,
   createAdmin,
   userLogin,
+  getStudentByID,
 } from "../controller/authController.js";
 
 const router = express.Router();
@@ -19,5 +20,8 @@ router.post("/registerAdmin", createAdmin);
 
 // student login
 router.post("/login", userLogin);
+
+// get student by id
+router.get("/getStudentByID/:id", getStudentByID);
 
 export default router;

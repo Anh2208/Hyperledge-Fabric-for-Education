@@ -33,63 +33,11 @@ function prettyJSONString(inputString) {
   return JSON.stringify(JSON.parse(inputString), null, 2);
 }
 
-// create result in blockchain
-// export const createResultBlock = async (req, res) => {
-//   const ID = req.body.data._id;
-//   // const id = req.body.data._id;
-//   console.log("Result is : ", req.body.groupID)
-//   try {
-//     //connect to hyperledger fabric network and contract
-//     const wallet = await buildWallet(Wallets, walletPath);
-//     const gateway = new Gateway();
 
-//     await gateway.connect(cppUser, {
-//       wallet,
-//       identity: String(userId),
-//       discovery: { enabled: true, asLocalhost: true },
-//     });
-//     const network = await gateway.getNetwork(channelName);
-//     const contract = network.getContract(chaincodeName);
-
-//     try {
-
-//       await Result.findByIdAndUpdate(ID, { $set: req.body.data }, { new: true });
-
-//       const saveResult = await Result.findById(ID);
-//       // console.log("saveResult", saveResult);
-
-//       await contract.submitTransaction(
-//         "CreateResult",
-//         ID,
-//         saveResult.groupMa,
-//         saveResult.subjectMS,
-//         saveResult.studentMS,
-//         saveResult.studentName,
-//         saveResult.teacherMS,
-//         saveResult.semester,
-//         saveResult.score,
-//         saveResult.date_awarded,
-//       );
-//       res
-//         .status(200)
-//         .json({
-//           success: true,
-//           message: "Create result successfully!!!",
-//           data: saveResult,
-//         });
-//     } finally {
-//       gateway.disconnect();
-//     }
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ success: false, message: "Lưu điểm sinh viên thất bại!!!" });
-//   }
-// };
-
+// create result in block
 export const createResultBlock = async (req, res) => {
   const ID = req.body.data._id;
-  // const id = req.body.data._id;
+
   console.log("Result is : ", req.body.groupID)
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -111,8 +59,6 @@ export const createResultBlock = async (req, res) => {
       await Result.findByIdAndUpdate(ID, { $set: req.body.data }, { new: true, session });
 
       const saveResult = await Result.findById(ID);
-
-      console.log("req.body.data la:", req.body.data.score);
       await contract.submitTransaction(
         "CreateResult",
         ID,
@@ -122,9 +68,9 @@ export const createResultBlock = async (req, res) => {
         saveResult.studentName,
         saveResult.teacherMS,
         saveResult.semester,
-        // saveResult.score,
         req.body.data.score,
         saveResult.date_awarded,
+        req.body.access,
       );
 
       await session.commitTransaction();
@@ -135,20 +81,34 @@ export const createResultBlock = async (req, res) => {
         message: "Create result successfully!!!",
         data: saveResult,
       });
-    } catch (error) {
-      console.log("error la:", error);
-
+    } catch (e) {
+      let error = "";
+      if (e.message.includes("Result exists in blockchain")) {
+        // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
+        error = "Lỗi tạo điểm, kết quả đã tồn tại trong học kỳ này";
+      }
+      if (e.message.includes("Not a valid User")) {
+        // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
+        error = "Không có quyền cập nhật điểm!!!";
+      }
+      if (e.message.includes("The grading deadline has expired")) {
+        // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
+        error = "Quá hạn ngày nhập điểm!!!";
+      }
+      // console.log("dsad", e);
       await session.abortTransaction();
       session.endSession();
       gateway.disconnect();
-      res.status(500).json({ success: false, message: "Lưu điểm sinh viên vào blockchain thất bại !!!" });
-    }finally{
+      res.status(500).json({ success: false, message: error });
+    } finally {
       gateway.disconnect();
     }
   } catch (error) {
     session.endSession();
-    res.status(500).json({ success: false, message: "Lưu điểm sinh viên thất bại !!!" });
-  } 
+    console.log("loi ne", error);
+
+    res.status(500).json({ success: false, message: `lưu điểm sinh viên thất bại !!!` });
+  }
 };
 
 // create result in mongodb
@@ -156,16 +116,19 @@ export const createResult = async (req, res) => {
   const groupID = req.params.id;
   // const newResult = new Result({ ...req.body });
   const newResult = new Result(req.body);
+  const year = new Date().getFullYear().toString();
   // console.log("groupID is:", groupID);
   try {
     // Check data exists in MongoDB
     const existMongo = await Result.find({
       $and: [
-        { groupMa: req.body.groupMa },
+        { subjectMS: req.body.subjectMS },
         { studentMS: req.body.studentMS },
+        { semester: req.body.semester },
+        { date_awarded: year },
       ],
     });
-    // console.log("existMongo", existMongo);
+    console.log("existMongo", existMongo);
     if (existMongo.length > 0) {
       res
         .status(500)
@@ -177,13 +140,13 @@ export const createResult = async (req, res) => {
     }
     const student = await Student.findOne({ mssv: req.body.studentMS });
 
-    if(!student){
+    if (!student) {
       res.status(400).json({ success: false, message: "Sinh viên không tồn tại!!!" });
       return;
     }
 
     const saveResult = await newResult.save();
-    const subject = await Subject.findOne({ subjectMa: newResult.subjectMS});
+    const subject = await Subject.findOne({ subjectMa: newResult.subjectMS });
 
     if (student) {
       await Result.findByIdAndUpdate(saveResult._id, {
@@ -219,8 +182,9 @@ export const createResult = async (req, res) => {
 // get data in blockchain
 // get history result
 export const getResultHistory = async (req, res) => {
-  const resultID = req.body.id;
-
+  const mssv = req.body.mssv;
+  const subjectMS = req.body.subjectMS;
+  const id = req.body.id;
   try {
     // connect to ledger and contract
     const wallet = await buildWallet(Wallets, walletPath);
@@ -234,9 +198,10 @@ export const getResultHistory = async (req, res) => {
     const contract = network.getContract(chaincodeName);
 
     const resultJSON = await contract.evaluateTransaction(
-      "GetResultHistory",
-      resultID,
+      "GetResultHistoryByID",
+      id
     );
+    console.log(`*** Result: ${resultJSON}`);
 
     console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
 
@@ -254,6 +219,7 @@ export const getResultHistory = async (req, res) => {
         data: JSON.parse(resultJSON.toString()),
       });
   } catch (err) {
+    console.log("err history is ", err)
     res.status(404).json({
       success: false,
       message: "Failed get history result!!!",
@@ -486,6 +452,27 @@ export const getResultByMSSV = async (req, res) => {
   }
 };
 
+// get result by mssv
+export const getResultByStudentID = async (req, res) => {
+  const studentID = req.query.id;
+  try {
+    const student = await Student.findById(studentID);
+    const result = await Result.find({ studentMS: student.mssv });
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Get result in mongodb successfully!!!",
+        data: result,
+      });
+  } catch (err) {
+    res
+      .status(404)
+      .json({ success: false, message: "Get result in mongdb not found" });
+  }
+};
+
 // get data by msgv
 export const getResultByMSGV = async (req, res) => {
   const teacherMS = req.body.teacherMS;
@@ -528,28 +515,33 @@ export const getResultByGroup = async (req, res) => {
 // update result
 export const updateResult = async (req, res) => {
   const id = req.body.data._id;
+  console.log("course is", req.body.data);
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
     // check data
     const resultStudent = await Result.findById(id);
     const check = await compareResult(id);
-    // console.log("hahah");
-    console.log("check dsadsad", check);
-    if (!check) {
 
+    console.log("check dsadsad", check);
+
+    if (!check) {
       res.status(500).json({
         success: false,
         message: `Kết quả học tập ${resultStudent.subjectMS} của ${resultStudent.studentName} không đồng bộ!!!`,
       });
       return;
     }
-    console.log("hahah");
+    if (check.leng > 0) {
+      res.status(500).json({
+        success: false,
+        message: check,
+      });
+    }
+
     //update result in mongodb
-    const updateResult = await Result.findByIdAndUpdate(
-      id,
-      { $set: req.body.data },
-      { new: true },
-    );
+    const updateResult = await Result.findByIdAndUpdate(id, { $set: req.body.data }, { new: true, session });
 
     const saveResult = await Result.findById(updateResult);
 
@@ -564,21 +556,25 @@ export const updateResult = async (req, res) => {
     });
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
-    console.log("saveResult", saveResult);
+
     // update result in blockchain
     await contract.submitTransaction(
       "UpdateResult",
       id,
-      saveResult.groupMa,
-      saveResult.subjectMS,
-      saveResult.studentMS,
-      saveResult.studentName,
-      saveResult.teacherMS,
-      saveResult.semester,
-      saveResult.score,
-      saveResult.date_awarded,
+      req.body.data.groupMa,
+      req.body.data.subjectMS,
+      req.body.data.studentMS,
+      req.body.data.studentName,
+      req.body.data.teacherMS,
+      req.body.data.semester,
+      req.body.data.score,
+      req.body.data.date_awarded,
+      req.body.access,
     );
 
+    // hoàn tất cập nhật và tắt kết nối
+    await session.commitTransaction();
+    session.endSession();
     gateway.disconnect();
 
     res.status(200).json({
@@ -586,12 +582,22 @@ export const updateResult = async (req, res) => {
       message: "Update result successfuly!!!",
       data: updateResult,
     });
-  } catch (error) {
-    console.log("error is", error);
-    res.status(500).json({
-      success: false,
-      message: "failed to update result",
-    });
+  } catch (e) {
+    let error = "";
+    if (e.message.includes("Result does not exists in blockchain")) {
+      error = "Lỗi tạo điểm, kết quả không tồn tại trong học kỳ này";
+    } else if (e.message.includes("Not a valid User")) {
+      error = "Không có quyền cập nhật điểm!!!";
+    } else if (e.message.includes("The grading deadline has expired")) {
+      error = "Quá hạn ngày nhập điểm!!!";
+    } else {
+      error = e.message;
+    }
+    await session.abortTransaction();
+    session.endSession();
+    // console.log("dsad", error);
+
+    res.status(400).json({ success: false, message: error });
   }
 };
 
@@ -618,7 +624,7 @@ export const deleteResult = async (req, res) => {
 
   let groupMa = req.body.groupMa;
   let studentMS = req.body.studentMS;
-  const test = await Result.find({ groupMa: groupMa, studentMS: studentMS });
+  // const test = await Result.find({ groupMa: groupMa, studentMS: studentMS });
   const ResultDelete = await Result.findOne({
     groupMa: groupMa,
     studentMS: studentMS,
@@ -695,57 +701,139 @@ export const deleteResultDB = async (req, res) => {
     });
   }
 };
+export const confirmResult = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const resultMongo = await Result.findById(id);
+
+    const wallet = await buildWallet(Wallets, walletPath);
+    const gateway = new Gateway();
+
+    await gateway.connect(cppUser, {
+      wallet,
+      identity: String(userId),
+      discovery: { enabled: true, asLocalhost: true },
+    });
+    const network = await gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
+    let result = await contract.evaluateTransaction("getSingleResult", id);
+
+    let resultBlock = JSON.parse(result.toString());
+
+    // so sánh 2 bên dữ liệu
+    const fieldsToCompare = [
+      "groupMa",
+      "subjectMS",
+      "studentMS",
+      "teacherMS",
+      "semester",
+      "score",
+      "date_awarded",
+    ];
+
+    let dataIsEqual = true;
+
+    fieldsToCompare.forEach((field) => {
+      const resultBlockString = String(resultBlock[field]);
+      const resultMongoString = String(resultMongo[field]);
+      if (resultBlockString !== resultMongoString) {
+        dataIsEqual = false;
+        return;
+      }
+    });
+
+    gateway.disconnect();
+
+    if (dataIsEqual) {
+      res.status(200).json({ success: true, result: true });
+    } else {
+      res.status(200).json({ success: true, result: false });
+    }
+  } catch (e) {
+
+    let error = "";
+    if (e.message.includes("Kết quả không tồn tại")) {
+      error = "Kết quả so sánh không tồn tại trong blockchain";
+    } else {
+      error = e;
+    }
+    res.status(400).json({ success: false, message: error });
+  }
+}
 // so sánh data resutt mongodb và blockchain
 const compareResult = async (id) => {
   // const MS = studentMS.source;
-  const resultMongo = await Result.findById(id);
+  try {
+    const resultMongo = await Result.findById(id);
 
-  const wallet = await buildWallet(Wallets, walletPath);
-  const gateway = new Gateway();
+    const wallet = await buildWallet(Wallets, walletPath);
+    const gateway = new Gateway();
 
-  await gateway.connect(cppUser, {
-    wallet,
-    identity: String(userId),
-    discovery: { enabled: true, asLocalhost: true },
-  });
-  const network = await gateway.getNetwork(channelName);
-  const contract = network.getContract(chaincodeName);
+    await gateway.connect(cppUser, {
+      wallet,
+      identity: String(userId),
+      discovery: { enabled: true, asLocalhost: true },
+    });
+    const network = await gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
 
-  let result = await contract.evaluateTransaction("getAllResultByID", id);
+    // let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS);
+    let result = await contract.evaluateTransaction("getSingleResult", id);
+    console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-  console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+    const resultBlock = JSON.parse(result.toString());
+    if (resultBlock == []) {
 
-  const resultBlock = JSON.parse(result.toString());
-
-  console.log("resultBlock 1 ", resultBlock);
-  console.log("resultMongo 2", resultMongo);
-
-  // so sánh 2 bên dữ liệu
-  const fieldsToCompare = [
-    "groupMa",
-    "subjectMS",
-    "studentMS",
-    "teacherMS",
-    "semester",
-    "score",
-    "date_awarded",
-  ];
-
-  let dataIsEqual = true;
-
-  fieldsToCompare.forEach((field) => {
-    const resultBlockString = String(resultBlock[0][field]);
-    const resultMongoString = String(resultMongo[field]);
-    console.log("resultBlockString", resultBlockString);
-    if (resultBlockString !== resultMongoString) {
-      dataIsEqual = false;
-      return;
     }
-  });
 
-  gateway.disconnect();
+    console.log("resultBlock 1 ", resultBlock);
+    console.log("resultMongo 2", resultMongo);
 
-  return dataIsEqual;
+    // so sánh 2 bên dữ liệu
+    const fieldsToCompare = [
+      "groupMa",
+      "subjectMS",
+      "studentMS",
+      "teacherMS",
+      "semester",
+      "score",
+      "date_awarded",
+    ];
+
+    let dataIsEqual = true;
+
+    fieldsToCompare.forEach((field) => {
+      const resultBlockString = String(resultBlock[field]);
+      const resultMongoString = String(resultMongo[field]);
+      console.log("resultBlockString", resultBlockString);
+      if (resultBlockString !== resultMongoString) {
+        dataIsEqual = false;
+        return;
+      }
+    });
+
+    gateway.disconnect();
+
+    return dataIsEqual;
+  } catch (e) {
+
+    let error = "";
+    if (e.message.includes("Result exists in blockchain")) {
+      // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
+      error = "Lỗi tạo điểm, kết quả đã tồn tại trong học kỳ này";
+    } else if (e.message.includes("Not a valid User")) {
+      // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
+      error = "Không có quyền cập nhật điểm!!!";
+    } else if (e.message.includes("The grading deadline has expired")) {
+      // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
+      error = "Quá hạn ngày nhập điểm!!!";
+    } else {
+      error = e;
+    }
+    // console.log("dsad", e);
+    return error;
+  }
 };
 
 // // get result in blockchain

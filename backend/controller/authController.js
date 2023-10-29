@@ -413,3 +413,16 @@ async function registerAdminInLedger(req, ID, Pass) {
     );
   }
 }
+
+export const getStudentByID = async (req, res) => {
+  const id = req.params.id;
+  try{
+    
+    const user = await Student.findById(id);
+
+    res.status(200).json({success: 200, message: "find user successfully.", data: user});
+
+  }catch(err){
+    res.status(400).json({success: false, message: "Failed get user by ID, try again"});
+  }
+}

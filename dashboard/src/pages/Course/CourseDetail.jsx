@@ -299,11 +299,12 @@ const CourseDetail = () => {
                             <h1 className='text-[20px]'>Danh sách sinh viên</h1>
                             <div className='card-body'>
                                 {Array.isArray(currentStudents) && currentStudents.length > 0 ? (
-                                    <Table striped bordered hover size="sm" className='flex-1 table-result mr-5'>
+                                    <table size="sm" className='flex-1 table-result mr-5'>
                                         <thead>
-                                            <tr className='text-left'>
+                                            <tr className=''>
                                                 <th>STT</th>
-                                                <th>Mã số sinh viên</th>
+                                                <th className='min-w-[90px]'>MSSV</th>
+                                                <th className='min-w-[150px] text-left'>Tên sinh viên</th>
                                                 <th className='centered-cell' style={{ display: '', justifyContent: 'center', alignItems: 'center' }}></th>
                                             </tr>
                                         </thead>
@@ -311,11 +312,12 @@ const CourseDetail = () => {
                                             {currentStudents.map((result, index) => (
                                                 <tr key={index} className='text-left'>
                                                     <td>{index + 1 + indexOfFirstStudent}</td>
-                                                    <td>{result.studentMS}</td>
+                                                    <td className='text-center'>{result.studentMS}</td>
+                                                    <td>{result.studentName}</td>
                                                     <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                                         <button
                                                             className="ml-3 rounded-full bg-orange-200 py-[3px] px-3 text-xs 
-                                    text-orange-900 transition-all hover-bg-orange-100"
+                                                                        text-orange-900 transition-all hover-bg-orange-100"
                                                             onClick={() => deletehandler(result.studentMS, courses.groupMa, result._id)}
                                                         >
                                                             Xóa
@@ -324,14 +326,14 @@ const CourseDetail = () => {
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </Table>
+                                    </table>
                                 ) : (
                                     <p>Lớp chưa có sinh viên</p>
                                 )}
                                 <div className="pagination">
                                     {Array.isArray(courses.results) && courses.results.length > 0 ? (
                                         Array.from({ length: Math.ceil(courses.results.length / studentsPerPage) }).map((_, index) => (
-                                            <button key={index} onClick={() => paginate(index + 1)} className="pagination-button">
+                                            <button key={index} onClick={() => paginate(index + 1)} className="pagination-button rounded-full">
                                                 {index + 1}
                                             </button>
                                         ))

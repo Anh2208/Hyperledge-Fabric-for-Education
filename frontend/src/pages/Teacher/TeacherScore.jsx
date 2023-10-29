@@ -16,6 +16,7 @@ const TeacherScore = () => {
     const [selectedCourse, setSelectedCourse] = useState('');// lưu trạng thái chọn học phần
     const [listedCourse, setListedCourse] = useState(''); // khi click "liệt kê" sẽ lấy value của học phần đang chọn
     const [isRegistering, setIsRegistering] = useState(false);// tạo trạng thái loading khi nhấn nút "Lưu"
+    const [courseTableID, setCourseTableID] = useState('');
 
     const fetchData = async () => {
         try {
@@ -30,6 +31,7 @@ const TeacherScore = () => {
             if (response.data.data && selectedCourse == '') {
                 setSelectedCourse(response.data.data[0].groupTen);
                 setListedCourse(response.data.data[0].groupTen);
+                setCourseTableID(response.data.data[0]._id)
                 console.log("listedCourse is", listedCourse);
             }
             console.log("courses is", response.data.data);
@@ -52,6 +54,9 @@ const TeacherScore = () => {
         setListedCourse(selectedCourse);
         setEditedScores({});
         setIsEditing(false);
+
+        const currentTable = courses.find(course => course.groupTen === selectedCourse);
+        setCourseTableID(currentTable._id);
     }
 
     // Cập nhật điểm sinh viên
@@ -96,11 +101,13 @@ const TeacherScore = () => {
                                 const response = await axiosInstance.put(`${BASE_URL}result/ResultBlock/create`, {
                                     data: editedScore,
                                     groupID: course._id,
+                                    access: course.access,
                                 });
                             } else {
                                 const response = await axiosInstance.put(`${BASE_URL}result/ResultBlock/update`, {
                                     data: editedScore,
                                     groupID: course._id,
+                                    access: course.access,
                                 });
                                 console.log("dasdasda");
                             }
@@ -158,7 +165,7 @@ const TeacherScore = () => {
             />
             <section className="px-5 xl:px-0 container pt-5">
                 <div className="max-w-[1170px] mx-auto rounded border-2 border-black">
-                    <div className="flex flex-row gap-5 m-5">
+                    <div className="flex flex-row justify-between gap-5 m-5">
                         <div className='p-1 rounded-md border-2 border-black'>
                             <Link to={"/teacher"} className="flex justify-between">
                                 <span className='items-center gap-3 rounded-md px-1 py-2'>
@@ -170,7 +177,7 @@ const TeacherScore = () => {
                             </Link>
                         </div>
                         <div className=' bg-cyan-200 rounded-md'>
-                            <Link to="/">
+                            <Link to={`/teacher/score/export/${courseTableID}`}>
                                 <button className="bg-primaryColor py-2 px-6 text-white font-[600] h-[44px] flex items-center rounded-md">
                                     Export Điểm
                                 </button>
@@ -207,7 +214,7 @@ const TeacherScore = () => {
                         </div>
                     </div>
                     <table className='border table-score mx-auto' >
-                        <thead> 
+                        <thead>
                             <tr>
                                 <th className='border border-black'>STT</th>
                                 <th className='border border-black'>Mã sinh viên</th>

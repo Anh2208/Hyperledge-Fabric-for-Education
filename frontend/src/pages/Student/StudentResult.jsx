@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { FaArrowRotateLeft } from 'react-icons/fa6';
-import useAxios from '../../hooks/useAxios'
 import { BASE_URL } from '../../utils/config';
 import { AuthContext } from '../../context/AuthContext';
 import "./student.css"

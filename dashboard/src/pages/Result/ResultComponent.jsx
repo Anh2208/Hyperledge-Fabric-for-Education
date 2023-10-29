@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from "axios";
 import { Link } from 'react-router-dom'
 import { BASE_URL } from '../../utils/config';
-import { FaArrowRotateLeft } from 'react-icons/fa6';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
 import LoadingSpinner from '../../hooks/LoadingSpinner';
@@ -15,6 +14,7 @@ const ResultComponent = () => {
     const [selectedCourse, setSelectedCourse] = useState('');// lưu trạng thái chọn học phần
     const [listedCourse, setListedCourse] = useState(''); // khi click "liệt kê" sẽ lấy value của học phần đang chọn
     const [isRegistering, setIsRegistering] = useState(false);// tạo trạng thái loading khi nhấn nút "Lưu"
+    const [courseTableID, setCourseTableID] = useState('');
 
     const fetchData = async () => {
         try {
@@ -27,7 +27,7 @@ const ResultComponent = () => {
             if (response.data.data && selectedCourse == '') {
                 setSelectedCourse(response.data.data[0].groupTen);
                 setListedCourse(response.data.data[0].groupTen);
-                console.log("listedCourse is", listedCourse);
+                setCourseTableID(response.data.data[0]._id);
             }
             console.log("courses is", response.data.data);
 
@@ -49,7 +49,12 @@ const ResultComponent = () => {
         setListedCourse(selectedCourse);
         setEditedScores({});
         setIsEditing(false);
+
+        //change
+        const currentTable = courses.find(course => course.groupTen === selectedCourse);
+        setCourseTableID(currentTable._id);
     }
+    console.log("setCourseTableID is", courseTableID);
 
     // Cập nhật điểm sinh viên
     const [isEditing, setIsEditing] = useState(false);
@@ -93,14 +98,16 @@ const ResultComponent = () => {
 
                             if (studentResult.score === undefined) {
                                 // const response = await axiosInstance.put(`${BASE_URL}result/ResultMongo/update`, {
-                                const response = await axiosInstance.put(`${BASE_URL}result/ResultBlock/create`, {
+                                await axiosInstance.put(`${BASE_URL}result/ResultBlock/create`, {
                                     data: editedScore,
                                     groupID: course._id,
+                                    access: course.access,
                                 });
                             } else {
-                                const response = await axiosInstance.put(`${BASE_URL}result/ResultBlock/update`, {
+                                await axiosInstance.put(`${BASE_URL}result/ResultBlock/update`, {
                                     data: editedScore,
                                     groupID: course._id,
+                                    access: course.access,
                                 });
                                 console.log("dasdasda");
                             }
@@ -141,7 +148,6 @@ const ResultComponent = () => {
         setIsEditing(false);
     };
 
-    console.log("listedCourse is :", listedCourse)
     return (
         <>
             <ToastContainer
@@ -158,10 +164,12 @@ const ResultComponent = () => {
             />
             <section className='content-main'>
                 <div className="content-header">
-                    <h2 className="content-title">Thêm học phần</h2>
-                    <div>
-                        <Link to={"/course"} className='btn btn-primary'>
-                            <i className='material-icons md-plus'></i>Trở về
+                    <h2 className="content-title">Điểm lớp học phần</h2>
+                    <div className=' bg-cyan-200 rounded-md'>
+                        <Link to={`/result/export/${courseTableID}`}>
+                            <button className="bg-primaryColor px-6 text-white font-[600] h-[44px] flex items-center rounded-md">
+                                In Điểm
+                            </button>
                         </Link>
                     </div>
                 </div>
@@ -194,7 +202,21 @@ const ResultComponent = () => {
                                 Liệt kê
                             </button>
                         </div>
+                        <div className='w-full flex ml-[150px]' >
+                            {Array.isArray(courses) ? courses.map((course, index) =>
+                                course.groupTen === listedCourse && (
+                                    <div className='flex' key={index}>
+                                        <h1><strong>Giảng Viên:</strong> {course.namegv}</h1> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+                                        <h1> <strong>MSGV:</strong> &nbsp; {course.msgv}</h1> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+                                        {/* <h1> <strong>Mã học phần:</strong> &nbsp; {course.subjectMa}</h1> */}
+                                    </div>
+                                )
+                            ) : (
+                                null
+                            )}
+                        </div>
                     </div>
+
                     <table className='border table-score mx-auto' >
                         <thead>
                             <tr>
@@ -247,7 +269,6 @@ const ResultComponent = () => {
                                                                         },
                                                                     })
                                                                 }
-
                                                             }
                                                             }
                                                         />
@@ -267,7 +288,7 @@ const ResultComponent = () => {
                         </tbody>
                     </table>
                     <div>
-                        <div className="flex justify-end p-5 gap-5">
+                        <div className="flex justify-end pt-5 gap-5">
                             <div>
                                 {isEditing ? (
                                     <>

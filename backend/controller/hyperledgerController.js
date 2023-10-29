@@ -39,15 +39,7 @@ export const fabric_initial_system = async (mspOrg1) => {
     await enrollAdmin(caClient, wallet, mspOrg1, 'admin');
 
     console.log("Create fabric-initial-system successfully!!!");
-
-    //create file admin.json in wallet
-    // const enrollment = await caClient.enroll({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
-    // let adminKeys = await walletUtils.createNewWalletEntity(enrollment, "admin");
-
-    // if(adminKeys){
-    //     console.log("Create fabric_initial_system success, this is adminKeys", adminKeys);
-    // }
-    // return adminKeys;
+    create_user("anhg1906001@gmail.com", "teacher");
   } catch (error) {
     console.error(`Failed to load network : ${error}`);
   }

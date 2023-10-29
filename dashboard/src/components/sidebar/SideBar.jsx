@@ -1,4 +1,4 @@
-import { FaUserGroup, FaHouse, FaLayerGroup, FaBook, FaRegCalendarCheck, FaGraduationCap } from "react-icons/fa6";
+import { FaAddressCard, FaHouse, FaLayerGroup, FaBook, FaRegCalendarCheck, FaGraduationCap, FaIdBadge } from "react-icons/fa6";
 
 import { NavLink } from "react-router-dom";
 
@@ -11,7 +11,7 @@ const sidebarLinks = [
   {
     name: "Tài khoản",
     href: "/user",
-    icon: FaUserGroup,
+    icon: FaAddressCard,
   },
   {
     name: "Môn học",
@@ -24,9 +24,14 @@ const sidebarLinks = [
     icon: FaLayerGroup,
   },
   {
-    name: "Điểm",
+    name: "Điểm lớp học phần",
     href: "/result",
     icon: FaRegCalendarCheck,
+  },
+  {
+    name: "Kết quả học tập",
+    href: "/student",
+    icon: FaIdBadge,
   },
   {
     name: "Bằng cấp",

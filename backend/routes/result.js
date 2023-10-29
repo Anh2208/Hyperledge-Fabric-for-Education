@@ -15,13 +15,18 @@ import {
   getResultByGroup,
   getResultHistory,
   deleteResultDB,
-  updateResultData
+  updateResultData,
+  confirmResult,
+  getResultByStudentID
 } from "../controller/resultController.js";
 
 const router = express.Router();
 
 // create Result in Mongodb
 router.post("/:id", createResult);
+
+// check synchronized of result
+router.post("/check/confirmResult/:id", confirmResult);
 
 // create Result in Blockchain
 router.put("/ResultBlock/create", createResultBlock);
@@ -58,13 +63,12 @@ router.get("/search/getAllResultByTeacherMS", getAllResultByTeacherMS);
 // search result in mongodb
 // get result by id
 router.get("/search/mongodb/getResultByID", getResultByID);
-
 // search result by MSSV
 router.get("/search/mongodb/getResultByMSSV", getResultByMSSV);
-
+// search result by StudentID
+router.get("/search/mongodb/getResultByStudentID", getResultByStudentID);
 // search result by MSGV
 router.get("/search/mongodb/getResultByMSGV", getResultByMSGV);
-
 // search result by Group
 router.get("/search/mongodb/getResultByGroup", getResultByGroup);
 

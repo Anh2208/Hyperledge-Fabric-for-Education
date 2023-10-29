@@ -1,0 +1,41 @@
+.table {
+    width: 50%;
+    background-color: rgb(171, 229, 254);
+}
+
+.table :hover {
+    background-color: initial !important;
+}
+
+h6 {
+    width: 80% !important;
+}
+
+h6 {
+    width: 50% !important;
+}
+
+.table td {
+    width: 50%;
+}
+
+.print-score {
+    justify-content: right;
+    align-items: center;
+    text-align: right;
+}
+
+.print-score div {
+    justify-content: end;
+}
+
+.print-score button:hover {
+    background-color: green !important;
+}
+
+
+.table-result{
+    width: 80%;
+    justify-items: center;
+    align-items: center;
+}

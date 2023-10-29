@@ -1031,10 +1031,10 @@ ul.row-sm {
 }
 
 .table-result {}
-
+/* 
 .table-result th {
   min-width: 100px;
-}
+} */
 
 .centered-cell {
   text-align: center;
@@ -1086,4 +1086,3 @@ h1{
   text-align: center;
   font-weight: bold;
 }
-
