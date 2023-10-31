@@ -10,7 +10,6 @@ class StoreContract extends Contract {
   // Contract for Result
   async CreateResult(
     ctx,
-    resultID,
     groupMa,
     subjectMS,
     studentMS,
@@ -21,7 +20,15 @@ class StoreContract extends Contract {
     date_awarded,
     access
   ) {
-    // kiểm tra role của người dùng
+
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
+    // lấy thông tin người tạo transaction
+    let userkey = ctx.clientIdentity.getID();
+    let x509Data = userkey.split("x509::")[1];
+    let CN = /\/CN=([^/]+)/.exec(x509Data);
+    CN = CN[1].replace(/::$/, ''); // Bỏ dấu hai chấm (::) đằng sau "appUser"
+
+
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin')) {
       throw new Error('Not a valid User');
@@ -37,7 +44,6 @@ class StoreContract extends Contract {
 
     let result = {
       docType: "result",
-      // resultID,
       groupMa,
       subjectMS,
       studentMS,
@@ -46,40 +52,37 @@ class StoreContract extends Contract {
       score,
       semester,
       date_awarded,
+      CN
     };
 
     const exists = await this.ResultExists(ctx, subjectMS, studentMS);// kiểm tra kết quả trong world state
     if (!exists) {
-      await ctx.stub.putState(resultID, Buffer.from(JSON.stringify(result)));
+      await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(result)));
     } else {
       // kiểm tra kết quả học tập của sinh viên ở học kỳ hiện tại
       const existsSemester = await this.ResultExistsSemester(ctx, subjectMS, studentMS, semester, date_awarded);// kiểm tra kết quả trong world state
       if (existsSemester) {
         throw Error('Result exists in blockchain');
       }
-      await ctx.stub.putState(resultID, Buffer.from(JSON.stringify(result)));
+      await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(result)));
     }
   }
 
   // GetAssetHistory returns the chain of custody for an asset since issuance.
-  async GetResultHistoryByID(ctx, resultID) {
+  async GetResultHistory(ctx, subjectMS, studentMS) {
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'admin')) {
       console.log('User does not have the required role ("test").');
       throw new Error('Not a valid User');
     }
-    let resultsIterator = await ctx.stub.getHistoryForKey(resultID);
+    if (resultKey == undefined) {
+      throw new Error('result does exist in blockchain')
+    }
+    let resultsIterator = await ctx.stub.getHistoryForKey(resultKey);
     let results = await this._GetAllResults(ctx, resultsIterator, true);
 
     return JSON.stringify(results);
-  }
-  async GetResultHistoryBySubjectAndStudent(ctx, subjectMS, studentMS) {
-    // Sử dụng phương thức getHistoryForKey để lấy lịch sử thay đổi của key cụ thể
-    const key = `${subjectMS}_${studentMS}`;
-    let resultsIterator = await ctx.stub.getHistoryForKey(key);
-    let resultHistory = await this._GetAllResults(ctx, resultsIterator, true);
-
-    return JSON.stringify(resultHistory);
   }
 
   async GetTransactionCreator(ctx, txId) {
@@ -110,9 +113,10 @@ class StoreContract extends Contract {
     ); //shim.success(queryResults);
   }
 
-  async getSingleResult(ctx, resultID) {// get all result by resultID
-    const resultState = await ctx.stub.getState(resultID);
-    if(resultState && resultState.length > 0){
+  async getSingleResult(ctx, subjectMS, studentMS) {// get all result by resultID
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
+    const resultState = await ctx.stub.getState(resultKey);
+    if (resultState && resultState.length > 0) {
       return JSON.parse(resultState.toString("utf8"));
     }
     throw new Error("Kết quả không tồn tại");
@@ -160,11 +164,10 @@ class StoreContract extends Contract {
 
         if (isHistory && isHistory === true) {
           jsonRes.TxId = res.value.txId;
-          // jsonRes.Timestamp = res.value.timestamp.seconds;
           jsonRes.Timestamp = new Date(res.value.timestamp.seconds * 1000); // Chuyển đổi giây sang mili giây
-          jsonRes.TestValue = res.value;
+          // jsonRes.TestValue = res.value;
           jsonRes.isDelete = res.value.isDelete;
-          
+
           try {
             jsonRes.Value = JSON.parse(res.value.value.toString("utf8"));
           } catch (err) {
@@ -193,7 +196,7 @@ class StoreContract extends Contract {
   //update Result
   async UpdateResult(
     ctx,
-    resultID,
+    // resultID,
     groupMa,
     subjectMS,
     studentMS,
@@ -204,6 +207,13 @@ class StoreContract extends Contract {
     date_awarded,
     access
   ) {
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
+    // lấy thông tin người tạo transaction
+    let userkey = ctx.clientIdentity.getID();
+    let x509Data = userkey.split("x509::")[1];
+    let CN = /\/CN=([^/]+)/.exec(x509Data);
+    CN = CN[1].replace(/::$/, ''); // Bỏ dấu hai chấm (::) đằng sau "appUser"
+
     // kiểm tra role của người dùng
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin')) {
@@ -219,14 +229,13 @@ class StoreContract extends Contract {
     }
 
     // const exists = await this.CheckResultExists(ctx, subjectMS, studentMS);
-    const exists = await this.ResultExistsByID(ctx, resultID);
-    if (exists == false) {
+    const exists = await this.ResultExistsByID(ctx, subjectMS, studentMS);
+    if (!exists) {
       throw Error('Result does not exists in blockchain');
     }
 
     let result = {
       docType: "result",
-      // resultID,
       groupMa,
       subjectMS,
       studentMS,
@@ -235,9 +244,10 @@ class StoreContract extends Contract {
       score,
       semester,
       date_awarded,
+      CN
     };
 
-    await ctx.stub.putState(resultID, Buffer.from(JSON.stringify(result)));
+    await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(result)));
 
   }
 
@@ -344,9 +354,10 @@ class StoreContract extends Contract {
     return studentState && studentState.length > 0;
   }
 
-  async ResultExistsByID(ctx, resultID) {
+  async ResultExistsByID(ctx, subjectMS, studentMS) {
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
     //check result of blockchain
-    const resultState = await ctx.stub.getState(resultID);
+    const resultState = await ctx.stub.getState(resultKey);
     return resultState && resultState.length > 0;
   }
 

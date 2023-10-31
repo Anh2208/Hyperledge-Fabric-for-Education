@@ -21,6 +21,7 @@ const PrintResult = () => {
     const [toYear, setToYear] = useState('');
     const [toSemester, setToSemester] = useState('');
     const [results, setResults] = useState([]);
+    const [compare, setCompare] = useState(false);
 
 
     const fetchData = async () => {
@@ -35,13 +36,14 @@ const PrintResult = () => {
                     params: { id: id },
                 }
             );
-
             if (selectedOption == 'all') {
                 setResults(response.data.data);
             } else {
                 // Lọc kết quả ngay khi nhận được dữ liệu
                 const filteredResults = await filterResults(response.data.data);
                 setResults(filteredResults);
+                console.log("tes tpw ddasd", response.data.data);
+
             }
         } catch (err) {
             console.log("Lỗi lấy dữ liệu:", err);
@@ -62,26 +64,19 @@ const PrintResult = () => {
 
         fetchData();
     }, [selectedOption]);
-    const test = localStorage.getItem('printData');
-    console.log("PrintData is o", test);
+    // const test = localStorage.getItem('printData');
+    // console.log("PrintData is o", test);
     // Hàm để lọc kết quả theo năm học và học kỳ
     const filterResults = (data) => {
         return data.filter((result) => {
             const resultYear = result.date_awarded;
             const resultSemester = result.semester;
-            console.log('start');
-            console.log("fromYear", fromYear);
-            console.log("toYear", toYear);
-            console.log("fromSemester", fromSemester);
-            console.log("toSemester", toSemester);
-            console.log("resultYear", resultYear);
-            console.log("resultSemester", resultSemester);
-            console.log('end');
+
             return (
                 (resultYear > fromYear && resultYear < toYear) ||
-                (resultYear == fromYear && resultYear != toYear && resultSemester >= fromSemester) ||
-                (resultYear != fromYear && resultYear == toYear && resultSemester <= toSemester) ||
-                (resultYear == fromYear && resultYear == toYear && resultSemester == toSemester && resultSemester == fromSemester)
+                (resultYear == fromYear && resultYear <= toYear && resultSemester >= fromSemester && resultSemester <= toSemester) ||
+                (resultYear >= fromYear && resultYear == toYear && resultSemester >= fromSemester && resultSemester <= toSemester) ||
+                (resultYear == fromYear && resultYear == toYear && resultSemester >= toSemester && resultSemester <= fromSemester)
             );
         });
     };
@@ -111,21 +106,25 @@ const PrintResult = () => {
         setIsConfirm(true);
         try {
             const checkResult = await Promise.all(results.map(async (result) => {
-                if (result.score == undefined) {
-                    return ({ ...result, confirm: true });
-                } else {
-                    try {
-                        const axiosInstance = axios.create({
-                            withCredentials: true,
-                        })
-                        const response = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${result._id}`);
-                        const isConfirmed = response.data.result;
-                        console.log("idsadasd", isConfirmed);
+                // if (result.score == undefined) {
+                //     return ({ ...result, confirm: true });
+                // } else {
+                try {
+                    const axiosInstance = axios.create({
+                        withCredentials: true,
+                    })
+                    const response = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${result._id}`);
+                    const isConfirmed = response.data.result;
+                    console.log("isConfirmed", isConfirmed);
+                    if (isConfirmed == undefined) {
+                        return ({ ...result, confirm: true });
+                    } else {
                         return ({ ...result, confirm: isConfirmed });
-                    } catch (err) {
-                        return ({ ...result, confirm: false });
                     }
+                } catch (err) {
+                    return ({ ...result, confirm: false });
                 }
+                // }
 
             }));
             const isConfirmed = checkResult.every((result) => result.confirm);
@@ -147,8 +146,9 @@ const PrintResult = () => {
             console.log("lỗi kiểm tra kết quả", err);
         }
         setIsConfirm(false);
+        setCompare(true);
     }
-    console.log("Result sau khi ktra la", results);
+    // console.log("Result sau khi ktra la", results);
     return (
         <>
             <ToastContainer
@@ -259,7 +259,8 @@ const PrintResult = () => {
                                                     grade = "";
                                                 }
                                                 return (
-                                                    <tr key={index} className={result.confirm == false ? 'text-red-500' : ''}>
+                                                    <tr key={index} className={result.confirm === false ? 'text-red-500' :
+                                                        (result.score == undefined && result.confirm != undefined && compare ? 'text-blue-500' : '')}>
                                                         <td>{index + 1}</td>
                                                         <td>{result.subjectMS}</td>
                                                         <td>{result.subjectTen}</td>
@@ -274,20 +275,24 @@ const PrintResult = () => {
                                     </table>
                                 </div>
                             ))}
-                            <table className='table_export mt-5'>
-                                <tbody>
-                                    <tr>
-                                        <td>Ghi chú : </td>
-                                        <td>+ Kết quả có màu đỏ là kết quả bị lỗi.</td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td>+ Bảng điểm lớp học phần chỉ được in khi đã nhập đủ điểm</td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     ))}
+                    <table className='table_export mt-5'>
+                        <tbody>
+                            <tr>
+                                <td>Ghi chú : </td>
+                                <td>+ Kết quả có màu đỏ là kết quả bị lỗi.</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>+ Kết quả có màu xanh dương là kết quả chưa được chấm điểm.</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>+ Bảng điểm lớp học phần chỉ được in khi đã nhập đủ điểm</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </>

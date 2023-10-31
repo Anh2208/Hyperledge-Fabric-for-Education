@@ -14,6 +14,7 @@
   "engine-strict": true,
   "license": "Apache-2.0",
   "dependencies": {
+    "@fidm/x509": "^1.2.1",
     "fabric-contract-api": "^2.0.0",
     "fabric-shim": "^2.0.0",
     "jsrsasign": "^10.8.6"

@@ -5,6 +5,7 @@ import { BASE_URL } from '../../utils/config';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from "axios";
+import './course.css'
 
 const CourseComponent = () => {
 
@@ -68,7 +69,7 @@ const CourseComponent = () => {
                     </div>
                 </div>
                 <div className='card mb-4'>
-                <header className='card-header mb-8 justify-end flex'>
+                    <header className='card-header mb-8 justify-end flex'>
                         <div className='row gx-3 '>
                             <div className='col-lg-4 col-md-4 m-4 p-2 me-auto border border-black rounded-md'>
                                 <input
@@ -85,7 +86,7 @@ const CourseComponent = () => {
                         {loading && <h4 className="text-center pt-5">Loading.....</h4>}
                         {error && <h4 className="text-center pt-5">{error}</h4>}
                         {!loading && !error && (
-                            <table size="sm" className='w-full'>
+                            <table size="sm" className='table-course border-separate border border-slate-400 '>
                                 <thead>
                                     <tr className='text-center'>
                                         <th>STT</th>
@@ -93,11 +94,11 @@ const CourseComponent = () => {
                                         <th className='max-w-[90px]'>Mã học phần</th>
                                         <th>Tên lớp</th>
                                         <th>Mã giảng viên</th>
-                                        <th className='text-left'>Tên giảng viên</th>
+                                        {/* <th className='text-left'>Tên giảng viên</th> */}
                                         <th className='centered-cell'>Số lượng</th>
                                         <th>Học kỳ</th>
                                         <th className='centered-cell min-w-[100px]'>Đăng ký</th>
-                                        <th className='centered-cell' style={{justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
+                                        <th className='centered-cell' style={{ justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -106,10 +107,10 @@ const CourseComponent = () => {
                                             <tr key={course._id || index} className='align-items-center'>
                                                 <td>{index + 1}</td>
                                                 <td>{course.groupMa}</td>
-                                                <td className='text-center'>{course.subjectMa}</td>
-                                                <td>{course.groupTen}</td>  
-                                                <td className='text-center'>{course.msgv}</td>
-                                                <td>{course.namegv}</td>
+                                                <td>{course.subjectMa}</td>
+                                                <td className='text-left'>{course.groupTen}</td>
+                                                <td>{course.msgv}</td>
+                                                {/* <td>{course.namegv}</td> */}
                                                 {course.currentslot ? (
                                                     <td className='centered-cell'>
                                                         {course.currentslot}/{course.slot}

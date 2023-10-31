@@ -416,13 +416,27 @@ async function registerAdminInLedger(req, ID, Pass) {
 
 export const getStudentByID = async (req, res) => {
   const id = req.params.id;
-  try{
-    
+  try {
+
     const user = await Student.findById(id);
 
-    res.status(200).json({success: 200, message: "find user successfully.", data: user});
+    res.status(200).json({ success: 200, message: "find user successfully.", data: user });
 
-  }catch(err){
-    res.status(400).json({success: false, message: "Failed get user by ID, try again"});
+  } catch (err) {
+    res.status(400).json({ success: false, message: "Failed get user by ID, try again" });
+  }
+}
+
+
+export const getStudentByMSSV = async (req, res) => {
+  const mssv = req.query.mssv;
+  try {
+
+    const user = await Student.findOne({ mssv: mssv });
+
+    res.status(200).json({ success: 200, message: "find user successfully.", data: user });
+
+  } catch (err) {
+    res.status(400).json({ success: false, message: "Failed get user by MSSV, try again" });
   }
 }

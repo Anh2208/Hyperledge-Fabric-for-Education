@@ -67,6 +67,19 @@ const DetailResult = () => {
         setFilteredResults(filteredData);
     }, [result, selectedYear, selectedSemester]);
 
+    // Sắp xếp theo năm học và học kỳ
+    const sortedResults = Object.keys(filteredResults)
+        .sort()
+        .map((yearSemester) => {
+            const [year, semester] = yearSemester.split("-");
+            return { year: parseInt(year), semester: parseInt(semester), data: filteredResults[yearSemester] };
+        })
+        .sort((a, b) => {
+            if (a.year === b.year) {
+                return a.semester - b.semester;
+            }
+            return a.year - b.year;
+        });
 
     return (
         <>
@@ -119,39 +132,37 @@ const DetailResult = () => {
                     </div>
                 </div>
                 <div className='table-content my-4'>
-
-                    {Object.keys(filteredResults).map((yearSemester, index) => {
-                        const [year, semester] = yearSemester.split("-");
-                        return (
-                            <div className='mb-5' key={index}>
-                                <h5 className='border mx-auto py-0.5 pb-0'>Năm học: {year}, Học kỳ: {semester}</h5>
-                                <table className='border my-0 mx-auto table-result'>
-                                    <thead>
-                                        <tr>
-                                            <th className='w-10px'>STT</th>
-                                            <th className='text-left'>Mã HP</th>
-                                            <th className='text-left'>Tên HP</th>
-                                            <th>Tín chỉ</th>
-                                            <th>Điểm chữ</th>
-                                            <th>Điểm số</th>
+                    {sortedResults.map((item, index) => (
+                        <div className='mb-5' key={index}>
+                            <h5 className='border mx-auto py-0.5 pb-0'>
+                                Năm học: {item.year}, Học kỳ: {item.semester == 3 ? "hè" : item.semester}
+                            </h5>
+                            <table className='border my-0 mx-auto table-score py-0'>
+                                <thead>
+                                    <tr>
+                                        <th className='w-[20px]'>STT</th>
+                                        <th className='w-[80px]'>Mã HP</th>
+                                        <th className='w-auto'>Tên HP</th>
+                                        <th className='w-[80px]'>Tín chỉ</th>
+                                        <th className='w-[80px]'>Điểm chữ</th>
+                                        <th className='w-[80px]'>Điểm số</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {item.data.map((result, i) => (
+                                        <tr key={i}>
+                                            <td className='text-center w-[20px]'>{i + 1}</td>
+                                            <td className='w-[80px]'>{result.subjectMS}</td>
+                                            <td className='text-left w-auto'>{result.subjectTen}</td>
+                                            <td className='w-[80px]'>{result.subjectSotc}</td>
+                                            <td className='w-[80px]'>{result.score}</td>
+                                            <td className='w-[80px]'>Rỗng</td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredResults[yearSemester].map((item, i) => (
-                                            <tr key={i}>
-                                                <td className='text-center'>{i + 1}</td>
-                                                <td>{item.subjectMS}</td>
-                                                <td>{item.subjectTen}</td>
-                                                <td className='text-center'>{item.subjectSotc}</td>
-                                                <td className='text-center'>{item.score}</td>
-                                                <td className='text-center'>Rỗng</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        );
-                    })}
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ))}
                 </div>
             </section>
         </>

@@ -217,7 +217,7 @@ const ResultComponent = () => {
                         </div>
                     </div>
 
-                    <table className='border table-score mx-auto' >
+                    <table className='table-score mx-auto border-separate border border-slate-400 ' >
                         <thead>
                             <tr>
                                 <th className='border border-black'>STT</th>

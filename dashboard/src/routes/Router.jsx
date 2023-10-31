@@ -20,6 +20,7 @@ import ResultExport from '../pages/Result/ResultExport'
 import DetailResult from '../pages/Student/DetailResult'
 import Semester from '../pages/Student/Semester'
 import PrintResult from '../pages/Student/PrintResult'
+import CheckResult from '../pages/Student/CheckResult'
 
 const Router = () => {
     return (
@@ -54,6 +55,7 @@ const Router = () => {
                                         <Route path='/result/export/:id' element={<ResultExport />} />
                                         <Route path='/student' element={<StudentResult />} />
                                         <Route path='/student/result/:id' element={<DetailResult />} />
+                                        <Route path='/student/result/check' element={<CheckResult />} />
                                         <Route path='/student/semester/:id' element={<Semester />} />
                                         <Route path='/student/semester/print/:id' element={<PrintResult />} />
                                         <Route path='/degree' element={<DegreeComponent />} />

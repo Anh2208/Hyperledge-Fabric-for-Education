@@ -61,7 +61,7 @@ export const createResultBlock = async (req, res) => {
       const saveResult = await Result.findById(ID);
       await contract.submitTransaction(
         "CreateResult",
-        ID,
+        // ID,
         saveResult.groupMa,
         saveResult.subjectMS,
         saveResult.studentMS,
@@ -182,9 +182,8 @@ export const createResult = async (req, res) => {
 // get data in blockchain
 // get history result
 export const getResultHistory = async (req, res) => {
-  const mssv = req.body.mssv;
   const subjectMS = req.body.subjectMS;
-  const id = req.body.id;
+  const studentMS = req.body.studentMS;
   try {
     // connect to ledger and contract
     const wallet = await buildWallet(Wallets, walletPath);
@@ -198,29 +197,32 @@ export const getResultHistory = async (req, res) => {
     const contract = network.getContract(chaincodeName);
 
     const resultJSON = await contract.evaluateTransaction(
-      "GetResultHistoryByID",
-      id
+      "GetResultHistory",
+      subjectMS,
+      studentMS
     );
     console.log(`*** Result: ${resultJSON}`);
-
     console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
 
     const jsoncompare = JSON.parse(resultJSON.toString());
-    console.log("Test ko coas", jsoncompare[0].TxId);
-
-    // const creator = await contract.evaluateTransaction('GetTransactionCreator', jsoncompare[0].TxId);
-    // console.log("Test", prettyJSONString(creator.toString()));
-
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Successful find history Result",
-        data: JSON.parse(resultJSON.toString()),
+    if (jsoncompare == '') {
+      res.status(400).json({
+        success: false,
+        message: "Không có kết quả trong blockchain!!!",
       });
+    } else {
+      res
+        .status(200)
+        .json({
+          success: true,
+          message: "Successful find history Result",
+          data: JSON.parse(resultJSON.toString()),
+        });
+    }
+
   } catch (err) {
     console.log("err history is ", err)
-    res.status(404).json({
+    res.status(400).json({
       success: false,
       message: "Failed get history result!!!",
     });
@@ -524,8 +526,6 @@ export const updateResult = async (req, res) => {
     const resultStudent = await Result.findById(id);
     const check = await compareResult(id);
 
-    console.log("check dsadsad", check);
-
     if (!check) {
       res.status(500).json({
         success: false,
@@ -560,7 +560,7 @@ export const updateResult = async (req, res) => {
     // update result in blockchain
     await contract.submitTransaction(
       "UpdateResult",
-      id,
+      // id,
       req.body.data.groupMa,
       req.body.data.subjectMS,
       req.body.data.studentMS,
@@ -634,7 +634,7 @@ export const deleteResult = async (req, res) => {
   try {
     // delete result from group
     await Group.findByIdAndUpdate(GroupID, {
-      $pull: { results: resultID },
+      $pull: { results: resultID, $inc: { currentslot: -1 }, },
     });
     // delete result in mongodb
     await Result.findByIdAndDelete(resultID);
@@ -717,9 +717,15 @@ export const confirmResult = async (req, res) => {
     });
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
-    let result = await contract.evaluateTransaction("getSingleResult", id);
 
-    let resultBlock = JSON.parse(result.toString());
+    // let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS);
+    let result = await contract.evaluateTransaction("GetResultHistory", resultMongo.subjectMS, resultMongo.studentMS);
+    console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+
+    const resultBlock = JSON.parse(result.toString());
+
+    console.log("resultBlock 1 ", resultBlock);
+    console.log("resultMongo 2", resultMongo);
 
     // so sánh 2 bên dữ liệu
     const fieldsToCompare = [
@@ -732,21 +738,29 @@ export const confirmResult = async (req, res) => {
       "date_awarded",
     ];
 
-    let dataIsEqual = true;
-
-    fieldsToCompare.forEach((field) => {
-      const resultBlockString = String(resultBlock[field]);
-      const resultMongoString = String(resultMongo[field]);
-      if (resultBlockString !== resultMongoString) {
-        dataIsEqual = false;
-        return;
-      }
-    });
+    // Duyệt qua từng trường trong resultMongo
+    let dataExist = true;
+    const dataIsEqual = fieldsToCompare.every((field) =>
+      resultBlock.some((result) =>
+        (result.Value[field] == resultMongo[field]) &&
+        (
+          new Date(result.Timestamp).toDateString() === new Date(resultMongo.createdAt).toDateString() ||
+          new Date(result.Timestamp).toDateString() === new Date(resultMongo.updatedAt).toDateString()
+        )
+      )
+    );
+    if (resultMongo.score == undefined && resultBlock != '') {// kiểm tra 2 bên đều tồn tại dữ liệu hay không?
+      dataExist = false;
+    }
+    // console.log("dataIsEqual", dataIsEqual);
 
     gateway.disconnect();
 
-    if (dataIsEqual) {
+    if (dataIsEqual && dataExist) {
       res.status(200).json({ success: true, result: true });
+    } else if ((resultBlock == '' && resultMongo.score == undefined)) {
+      console.log("dasdsahgjhhjhcxzhjhbjk");
+      res.status(200).json({ success: true, message: "Error data, data mongodb in none but data in block exists" });
     } else {
       res.status(200).json({ success: true, result: false });
     }
@@ -777,15 +791,11 @@ const compareResult = async (id) => {
     });
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
+    let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS);
 
-    // let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS);
-    let result = await contract.evaluateTransaction("getSingleResult", id);
     console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
     const resultBlock = JSON.parse(result.toString());
-    if (resultBlock == []) {
-
-    }
 
     console.log("resultBlock 1 ", resultBlock);
     console.log("resultMongo 2", resultMongo);

@@ -1,6 +1,29 @@
 .vertical-divider {
-    width: 1px; /* Độ rộng của đường kẻ */
-    background-color: #000; /* Màu của đường kẻ */
-    margin: 0 10px; /* Khoảng cách giữa các ô nhập */
-    height: 100%; /* Chiều cao của đường kẻ (bằng chiều cao của các ô nhập) */
+    width: 1px;
+    /* Độ rộng của đường kẻ */
+    background-color: #000;
+    /* Màu của đường kẻ */
+    margin: 0 10px;
+    /* Khoảng cách giữa các ô nhập */
+    height: 100%;
+    /* Chiều cao của đường kẻ (bằng chiều cao của các ô nhập) */
+}
+
+/* #95A5A6 */
+.table-subject {
+    width: 80%;
+    text-align: center;
+    justify-items: center;
+    align-items: center;
+}
+
+.table-subject th {
+    background-color: #00BFFF;
+    font-weight: normal;
+    padding: 0.5rem;
+}
+
+.table-subject td {
+    border: 2px solid rgb(203, 213, 225);
+    padding: 3px;
 }

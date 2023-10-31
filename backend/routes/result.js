@@ -48,7 +48,7 @@ router.delete("/deleteResult/mongodb/:id", deleteResultDB);
 
 // search in blockchain
 // get history result
-router.get("/search/getResultHistory", getResultHistory);
+router.post("/search/getResultHistory", getResultHistory);
 // get result by mssv
 router.get("/search/getAllResult", getAllResult);
 // get result by mssv

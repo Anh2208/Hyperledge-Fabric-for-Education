@@ -36,7 +36,6 @@ input::-webkit-inner-spin-button {
 }
 
 .table-score {
-    /* background-color: aqua; */
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -45,13 +44,14 @@ input::-webkit-inner-spin-button {
 }
 
 .table-score th {
-    background-color: pink;
-    padding: 5px;
+    background-color: #00BFFF !important;
+    font-weight: normal;
+    padding: 0.5rem;
 }
 
 .table-score td {
-    /* background-color: greenyellow; */
-    padding: 5px;
+    border: 2px solid rgb(203, 213, 225);
+    padding: 3px;
 }
 
 .table_export {
@@ -66,12 +66,12 @@ input::-webkit-inner-spin-button {
 /* CSS */
 .table_student {
     border-collapse: collapse;
-     /* background-color: aqua; */
-     justify-content: center;
-     align-items: center;
-     text-align: center;
-     /* margin: 10px; */
-     width: 100%;
+    /* background-color: aqua; */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* margin: 10px; */
+    width: 100%;
 }
 
 .table_student th,
@@ -133,4 +133,3 @@ input::-webkit-inner-spin-button {
     text-align: center;
     margin-bottom: 0px !important;
 }
-

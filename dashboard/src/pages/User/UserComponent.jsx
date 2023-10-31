@@ -67,11 +67,11 @@ const UserComponent = () => {
                     {!loading && !error && (
                         <>
                             {selectedRole === "student" ? (
-                                <div className='card-body'>
+                                <div className='card-body justify-center'>
                                     <h1 className='justify-center text-center text-[30px] mb-3'>Sinh viên</h1>
-                                    <table size="sm" className='w-full overflow-auto'>
+                                    <table size="sm" className='table-user border-separate border border-slate-400 '>
                                         <thead>
-                                            <tr className='text-left'>
+                                            <tr>
                                                 <th>Mã lớp</th>
                                                 <th>Mã số sinh viên</th>
                                                 <th>Tên</th>
@@ -88,8 +88,8 @@ const UserComponent = () => {
                                                     <tr key={user._id || index}>
                                                         <td>{user.class}</td>
                                                         <td>{user.mssv}</td>
-                                                        <td>{user.name}</td>
-                                                        <td>{user.email}</td>
+                                                        <td className='text-left'>{user.name}</td>
+                                                        <td className='text-left'>{user.email}</td>
                                                         <td>{user.sdt}</td>
                                                         <td>{formatDate(user.date)}</td>
                                                         <td>{user.sex}</td>
@@ -103,9 +103,9 @@ const UserComponent = () => {
                             ) : selectedRole === "teacher" ? (
                                 <div className='card-body'>
                                     <h1 className='justify-center text-center text-[30px] mb-3'>Giảng viên</h1>
-                                    <table size="sm" className='w-full'>
+                                    <table size="sm" className='table-user border-separate border border-slate-400 '>
                                         <thead>
-                                            <tr className='text-left'>
+                                            <tr>
                                                 <th>Mã số</th>
                                                 <th>Email</th>
                                                 <th>Tên</th>
@@ -118,8 +118,8 @@ const UserComponent = () => {
                                                 return (
                                                     <tr key={user._id || index}>
                                                         <td>{user.msgv}</td>
-                                                        <td>{user.email}</td>
-                                                        <td>{user.name}</td>
+                                                        <td className='text-left'>{user.email}</td>
+                                                        <td className='text-left'>{user.name}</td>
                                                         <td>{user.sex}</td>
                                                         <td className='truncate text__table'>{user.publicKey}</td>
                                                     </tr>
@@ -131,7 +131,7 @@ const UserComponent = () => {
                             ) : (
                                 <div className='card-body'>
                                     <h1 className='justify-center text-center text-[30px] mb-3'>Quản trị viên</h1>
-                                    <table  size="sm" className='w-full'>
+                                    <table size="sm" className='table-user  border-separate border border-slate-400 '>
                                         <thead>
                                             <tr className='text-left'>
                                                 <th>Mã số</th>
@@ -148,8 +148,8 @@ const UserComponent = () => {
                                                 return (
                                                     <tr key={user._id || index}>
                                                         <td>{user.adminMS}</td>
-                                                        <td className='maxtext'>{user.email}</td>
-                                                        <td>{user.name}</td>
+                                                        <td className='text-left'>{user.email}</td>
+                                                        <td className='text-left'>{user.name}</td>
                                                         <td>{user.date}</td>
                                                         <td>{user.sdt}</td>
                                                         {/* <td className='truncate'>{user.publicKey}</td> */}

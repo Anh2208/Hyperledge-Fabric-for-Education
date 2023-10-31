@@ -2,7 +2,7 @@ import Subject from "../models/Subject.js";
 
 // create subject
 export const createSubject = async (req, res) => {
-   const subjectMa = req.body.subjectMa;
+  const subjectMa = req.body.subjectMa;
 
   try {
     // Kiểm tra xem mã học phần đã tồn tại hay chưa
@@ -99,11 +99,11 @@ export const getSingleSubject = async (req, res) => {
 
 // get subject by Ma
 export const getSubjectByMS = async (req, res) => {
-  const subjectMa = new RegExp(req.query.subjectMa, "i");
+  const subjectMa = req.query.subjectMa;
   // const subjectMa = "CT001";
-  // console.log("subject ma is: ", subjectMa);
+  console.log("subject ma is: ", subjectMa);
   try {
-    const subject = await Subject.find({ subjectMa });
+    const subject = await Subject.findOne({ subjectMa });
     res.status(200).json({
       success: true,
       message: "Find subject by Ma successfully",

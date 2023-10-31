@@ -5,6 +5,7 @@ import {
   createAdmin,
   userLogin,
   getStudentByID,
+  getStudentByMSSV,
 } from "../controller/authController.js";
 
 const router = express.Router();
@@ -24,4 +25,6 @@ router.post("/login", userLogin);
 // get student by id
 router.get("/getStudentByID/:id", getStudentByID);
 
+// get student by mssv
+router.get("/getStudentByMSSV", getStudentByMSSV);
 export default router;

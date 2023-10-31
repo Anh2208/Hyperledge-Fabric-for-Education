@@ -124,3 +124,23 @@
     background-color: #0056b3 !important;
     /* Màu nền khi trỏ vào */
 }
+
+.table-user {
+    width: 100%;
+    text-align: center;
+    justify-items: center;
+    align-items: center;
+}
+
+.table-user th {
+    background-color: #00BFFF;
+    font-weight: normal;
+    padding: 0.5rem;
+    text-align: center;
+    justify-items: center;
+}
+
+.table-user td {
+    border: 2px solid rgb(203, 213, 225);
+    padding: 3px;
+}

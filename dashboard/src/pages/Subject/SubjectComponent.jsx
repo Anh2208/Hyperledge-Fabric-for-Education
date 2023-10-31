@@ -86,16 +86,16 @@ const SubjectComponent = () => {
                             </div>
                         </div>
                     </header>
-                    <div className='card-body'>
+                    <div className='card-body justify-center flex'>
                         {loading && <h4 className="text-center pt-5">Loading.....</h4>}
                         {error && <h4 className="text-center pt-5">{error}</h4>}
                         {!loading && !error && (
 
-                            <table size="sm" className='w-full'>
+                            <table size="sm" className='table-subject border-separate border border-slate-400 '>
                                 <thead>
                                     <tr className='text-center'>
                                         <th>STT</th>
-                                        <th className='text-left'>Mã học phần</th>
+                                        <th>Mã học phần</th>
                                         <th>Tên học phần</th>
                                         <th>Số tín chỉ</th>
                                         <th className='hanh-dong' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Hành động</th>
@@ -112,9 +112,9 @@ const SubjectComponent = () => {
                                         .map((subject, index) => {
                                             return (
                                                 <tr key={subject._id || index}>
-                                                    <td className='text-center'>{index + 1}</td>
+                                                    <td>{index + 1}</td>
                                                     <td>{subject.subjectMa}</td>
-                                                    <td>{subject.subjectTen}</td>
+                                                    <td className='text-left'>{subject.subjectTen}</td>
                                                     <td className='text-center'>{subject.subjectSotc}</td>
                                                     <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                                         <Link

@@ -34,8 +34,55 @@ h6 {
 }
 
 
-.table-result{
-    width: 80%;
+.table-result {
+    width: 100%;
+    /* width: 1104px; */
+    text-align: center;
     justify-items: center;
     align-items: center;
+    /* overflow: hidden !important; */
+}
+
+.table-result th {
+    background-color: #00BFFF !important;
+    font-weight: normal;
+    padding: 0.5rem;
+}
+
+.table-result td {
+    border: 2px solid rgb(203, 213, 225);
+    padding: 3px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    /* border-bottom: 1px dotted black; */
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 90px;
+    background-color: blue;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    font-size: 10px;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 50%;
+    margin-left: -20px;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.infor-subject td {
+    padding-top: 5px;
+    padding-bottom: 4px;
 }

@@ -1,0 +1,17 @@
+.table-course {
+    width: 100%;
+    text-align: center;
+    justify-items: center;
+    align-items: center;
+}
+
+.table-course th {
+    background-color: #00BFFF;
+    font-weight: normal;
+    padding: 0.25rem;
+}
+
+.table-course td {
+    border: 2px solid rgb(203, 213, 225);
+    padding: 3px;
+}
