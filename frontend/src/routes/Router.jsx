@@ -9,43 +9,73 @@ import TeacherScore from "../pages/Teacher/TeacherScore.jsx";
 import StudentHome from "../pages/Student/StudentHome.jsx";
 import StudentResult from "../pages/Student/StudentResult.jsx";
 import TeacherExport from "../pages/Teacher/TeacherExport.jsx";
-// import "../App.css"
+import Protected from './Protected'
+import NotFound from "../pages/NotFound.jsx"
+import Header from "../components/Header/Header.jsx";
+import "../App.css"
 const Router = () => {
   const { user } = useContext(AuthContext);
-  let isAuthenticated = false;
-  if (user) {
-    isAuthenticated = true;
-  }
-  const PrivateWrapper = ({ children }) => {
-    return isAuthenticated ? children : <Navigate to="/login" />;
-  };
+  // let isAuthenticated = false;
+  // if (user) {
+  //   isAuthenticated = true;
+  // }
+  // const PrivateWrapper = ({ children }) => {
+  //   return isAuthenticated ? children : <Navigate to="/login" />;
+  // };
+  const HeaderLayout = () => (
+    <>
+      <Header />
+      <Outlet />
+    </>
+  );
 
-  console.log("hdashda", user)
   return (
-    // <Routes>
-    //   {/* Các đường dẫn không cần xác thực */}
-    //   <Route path="/register" element={<Signup />} />
-    //   <Route path="/service" element={<Services />} />
-    //   <Route path="/login" element={<Login />} />
-    //   <Route path="/" element={<Home />} />
-    // </Routes>
-    // <Router>
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route element={<PrivateWrapper>...</PrivateWrapper>}>
-        {/* <Route> */}
-        <Route path="/" element={<Home />} />
+      <Route element={<HeaderLayout />}>
+        <Route index path="/" element={user && user.role == 'Teacher' ? <TeacherHome /> :
+          user && user.role == 'Student' ? <StudentHome /> : <Login />} />
+        {/* </Route> */}
+        <Route
+          path="/teacher"
+          element={
+            <Protected user={user && user.role ? user.role : ''} role="Teacher">
+              <TeacherHome />
+            </Protected>
+          } />
+        <Route
+          path="/teacher/score"
+          element={
+            <Protected user={user && user.role ? user.role : ''} role="Teacher">
+              <TeacherScore />
+            </Protected>
+          } />
+        <Route
+          path="/teacher/score/export/:id"
+          element={
+            <Protected user={user && user.role ? user.role : ''} role="Teacher">
+              <TeacherExport />
+            </Protected>
+          } />
+        <Route
+          path="/student"
+          element={
+            <Protected user={user && user.role ? user.role : ''} role="Student">
+              <StudentHome />
+            </Protected>
+          } />
+        <Route
+          path="/student/result"
+          element={
+            <Protected user={user && user.role ? user.role : ''} role="Student">
+              <StudentResult />
+            </Protected>
+          } />
       </Route>
-      <Route path="/home" element={<Home />} />
-      <Route path="/teacher" element={<TeacherHome />} />
-      <Route path="/teacher/score" element={<TeacherScore />} />
-      <Route path="/teacher/score/export/:id" element={<TeacherExport />} />
-      <Route path="/student" element={<StudentHome />} />
-      <Route path="/student/result" element={<StudentResult />} />
-
+      <Route path="*" element={<NotFound />} />
     </Routes>
-    // </Router>
   );
+
 };
 
 export default Router;

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
-import loginImg from "../asset/images/6310507.jpg";
+// import loginImg from "../asset/images/6310507.jpg";
+import loginImg from "../asset/images/6310507.jpg"
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext.jsx"
-import { BASE_URL } from "../utils/config.js"
+import { BASE_URL } from "../utils/config";
 import { useNavigate } from "react-router-dom";
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
@@ -12,12 +13,11 @@ const Login = () => {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
-    role: "Student"
   })
 
   const { dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
-
+  // console.log(dispatch);
   const handleChange = e => {
     setCredentials(prev => ({ ...prev, [e.target.id]: e.target.value }));
   };
@@ -25,7 +25,7 @@ const Login = () => {
   const handleClick = async e => {
     e.preventDefault();
     dispatch({ type: "LOGIN_START" });
-    console.log("Role", credentials.role);
+    // console.log("Role", credentials.role);
     try {
       const axiosInstance = axios.create({
         withCredentials: true
@@ -33,19 +33,14 @@ const Login = () => {
       const response = await axiosInstance.post(`${BASE_URL}auth/login`, {
         email: credentials.email,
         password: credentials.password,
-        role: credentials.role,
+        role: 'admin',
       });
 
       const result = response.data;
       console.log("response.response", response);
 
       dispatch({ type: "LOGIN_SUCCESS", payload: result.data });
-      if (credentials.role === "Teacher") {
-        navigate("/teacher");
-      }
-      else {
-        navigate("/student");
-      }
+      navigate("/home");
 
     } catch (err) {
       console.log("loi r", err.response.data.message);
@@ -85,7 +80,7 @@ const Login = () => {
             {/* =============login form============= */}
             <div className="rounded-l-lg lg:pl-16 py-10">
               <h3 className="text-headingColor text-[22px] leading-9 font-bold mb-10">
-                Login an <span className="text-primaryColor">account</span>
+                Đăng nhập <span className="text-primaryColor">tài khoản</span>
               </h3>
 
               <form onSubmit={handleClick}>
@@ -115,18 +110,6 @@ const Login = () => {
                 placeholder:text-textColor cursor-pointer"
                   />
                 </div>
-
-                <div className="mb-10 flex items-center justify-between">
-                  <label className="text-headingColor font-bold text-[16px] leading-7">
-                    Bạn là:
-                    <select id="role" onChange={handleChange} className="text-textColor font-semibold text-[15px] leading-7 px-4 py-3 focus:outline-none">
-                      <option value="Student">Sinh viên</option>
-                      <option value="Teacher">Giảng viên</option>
-                      {/* <option value="Admin">Admin</option> */}
-                    </select>
-                  </label>
-                </div>
-
                 <div>
                   <button type="submit" className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3">
                     Đăng Nhập

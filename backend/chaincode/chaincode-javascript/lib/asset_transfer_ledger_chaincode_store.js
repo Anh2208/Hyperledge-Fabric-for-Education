@@ -73,7 +73,6 @@ class StoreContract extends Contract {
     let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'admin')) {
-      console.log('User does not have the required role ("test").');
       throw new Error('Not a valid User');
     }
     if (resultKey == undefined) {

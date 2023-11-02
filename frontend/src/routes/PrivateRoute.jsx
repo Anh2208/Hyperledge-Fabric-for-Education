@@ -1,15 +1,15 @@
 import React from "react";
-import { Redirect, Route } from "react-router-dom";
+import { useNavigate, Route } from "react-router-dom";
 
 function PrivateRouter({ component: Component, isAuthenticated, userRole, ...rest }) {
   return (
     <Route
       {...rest}
       element={(props) => {
-        if (isAuthenticated && userRole === "admin") {
+        if (isAuthenticated && userRole == isAuthenticated) {
           return <Component {...props} />;
         } else {
-          return <Redirect to="/login" />;
+          return <useNavigate to="/login" />;
         }
       }}
     />

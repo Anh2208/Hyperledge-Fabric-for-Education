@@ -1,14 +1,15 @@
 import { useEffect, useState, useContext, useRef } from "react";
 import { NavLink, Link } from "react-router-dom";
 import logo_ctu from "../../asset/images/Logo_Dai_hoc_Can_Tho.svg";
-import admin from "../../asset/images/icon_user.png";
+import teacher from "../../asset/images/icon_user.png";
+import student from "../../asset/images/student.png";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import Cookies from "js-cookie";
 
 const Header = () => {
   const { user } = useContext(AuthContext);
-  const [role, setRole] = useState(user && (user.role));
+  // const [role, setRole] = useState(user && (user.role));
   const navigate = useNavigate();
 
   const [showMenu, setShowMenu] = useState(false);
@@ -40,7 +41,7 @@ const Header = () => {
     };
   }, []);
 
-  console.log("Reol is ", role);
+  // console.log("Reol is ", role);
   return (
     <header className="header flex items-center">
       <div className="container">
@@ -60,16 +61,20 @@ const Header = () => {
             <h1 className="bg-primaryColor py-2 px-6 text-white font-[600] h-[44px] flex items-center rounded-[50px] welcome__heading">
               Xin chào &nbsp;
               {user ? (
-                user.role === "Teacher" ? user.msgv : user.mssv
+                user.role === "Teacher" ? user.name : user.name
               ) : null}
 
             </h1>
             <div className="relative" ref={menuRef}>
               <figure className="w-[35px] h-[35px] rounded-full cursor-pointer" onClick={toggleMenu}>
-                <img src={admin} className="w-full rounded-full" alt="Image" />
+                {user && user.role == 'Teacher' ? (
+                  <img src={teacher} className="w-full rounded-full" alt="Image" />
+                ) : (
+                  <img src={student} className="w-full rounded-full" alt="Image" />
+                )}
               </figure>
               {showMenu && (
-                <ul className="absolute top-10 left-0 min-w-[100px] w-full bg-white border-2 border-gray-500 rounded shadow mt-2 select-header">
+                <ul className="absolute top-10 right-0 min-w-[100px] w-full bg-white border-2 border-gray-500 rounded shadow mt-2 select-header">
                   <li>
                     <Link to="/" className="w-full flex">
                       Trang chủ

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from 'react-router-dom'
 import Score from "../../asset/images/ql_diem.gif"
 import Degree from "../../asset/images/degree.png"
@@ -6,6 +6,8 @@ import { AuthContext } from "../../context/AuthContext"
 
 const StudentHome = () => {
 
+  const { user } = useContext(AuthContext);
+  console.log("dasdsad", user);
   const cardLinks = [
     {
       name: "Kết quả học tập",
@@ -30,16 +32,16 @@ const StudentHome = () => {
                 <h1 className="infor justify-center mb-3">Thông tin Sinh viên</h1>
                 <div className="grid grid-cols-2 gap-4 p-10 mx-20">
                   <div className='font-bold'>Mã GV: </div>
-                  <div>B1906425</div>
+                  <div>{user.mssv}</div>
 
                   <div className='font-bold' >Họ tên: </div>
-                  <div>Dinh Hoang Anh</div>
+                  <div>{user.name}</div>
 
                   <div className='font-bold'>Giới tính: </div>
-                  <div>Nam </div>
+                  <div>{user.sex} </div>
 
                   <div className='font-bold'>Email: </div>
-                  <div>Anhvh1412@gmail.com</div>
+                  <div>{user.email}</div>
                 </div>
 
               </div>

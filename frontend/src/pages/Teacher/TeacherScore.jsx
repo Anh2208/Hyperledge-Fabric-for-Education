@@ -209,7 +209,7 @@ const TeacherScore = () => {
                             </label>
                             {/* </div> */}
                             <button onClick={handleClickListed} className="bg-primaryColor p-2 text-white font-[600] h-[30px] flex items-center rounded-md">
-                                Liệt kê
+                                <span>Liệt kê</span>
                             </button>
                         </div>
                     </div>

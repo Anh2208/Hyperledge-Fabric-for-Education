@@ -9,9 +9,10 @@ import useAxios from "../../hooks/useAxios";
 import LoadingSpinner from '../../hooks/LoadingSpinner';
 import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
+import ReactToPrint from "react-to-print"; // Import ReactToPrint
 
 const TeacherExport = () => {
-    const {user} = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     console.log("user is ", user);
     const { id } = useParams();
     const [check, setCheck] = useState(false);
@@ -19,6 +20,7 @@ const TeacherExport = () => {
     const [course, setCourse] = useState(`${BASE_URL}group/${id}`);
     const { data: couserTable, loading, error } = useAxios(course);
     const [courses, setCourses] = useState([couserTable.results]);
+    const componentRef = React.useRef();
 
     console.log("courses is ", courses);
 
@@ -48,18 +50,35 @@ const TeacherExport = () => {
         } else {
             try {
                 const updatedCourses = await Promise.all(couserTable.results.map(async (result) => {
+                    // try {
+                    //     const axiosInstance = axios.create({
+                    //         withCredentials: true,
+                    //     });
+
+                    //     const response = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${result._id}`);
+                    //     const isConfirmed = response.data.result;
+
+                    //     return { ...result, confirm: isConfirmed };
+                    // } catch (error) {
+                    //     return { ...result, confirm: false };
+                    // }
                     try {
                         const axiosInstance = axios.create({
                             withCredentials: true,
-                        });
-
+                        })
                         const response = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${result._id}`);
                         const isConfirmed = response.data.result;
-
-                        return { ...result, confirm: isConfirmed };
-                    } catch (error) {
-                        return { ...result, confirm: false };
+                        console.log("isConfirmed", isConfirmed);
+                        if (isConfirmed == undefined) {
+                            return ({ ...result, confirm: true });
+                        } else {
+                            return ({ ...result, confirm: isConfirmed });
+                        }
+                    } catch (err) {
+                        console.log("erro js", err);
+                        return ({ ...result, confirm: false });
                     }
+
                 }));
 
                 const isConfirmed = updatedCourses.every((result) => result.confirm);
@@ -130,15 +149,20 @@ const TeacherExport = () => {
                                     )}
                                 </>
                             ) : (
-                                <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1'>
-                                    <span className=' text-base font-semibold xl:block px-5 py-1'>
-                                        In Điểm
-                                    </span>
-                                </button>
+                                <ReactToPrint
+                                    trigger={() => (
+                                        <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1'>
+                                            <span className=' text-base font-semibold xl:block px-5 py-1'>
+                                                In Điểm
+                                            </span>
+                                        </button>
+                                    )}
+                                    content={() => componentRef.current}
+                                />
                             )}
                         </div>
                     </div>
-                    <div>
+                    <div ref={componentRef}>
                         {loading && <h4 className="text-center pt-5">Loading.....</h4>}
                         {error && <h4 className="text-center pt-5">{error}</h4>}
                         {!loading && !error && (
@@ -199,7 +223,9 @@ const TeacherExport = () => {
                                                 grade = "";
                                             }
                                             return (
-                                                <tr key={index} className={result.confirm == false ? 'text-red-500' : ''}>
+                                                // <tr key={index} className={result.confirm == false ? 'text-red-500' : ''}>
+                                                <tr key={index} className={result.confirm === false ? 'text-red-500' :
+                                                    (result.score == undefined && result.confirm != undefined && compare ? 'text-blue-500' : '')}>
                                                     <td>{index + 1}</td>
                                                     <td className='text-left'>{result.studentMS}</td>
                                                     <td className='text-left'>{result.studentName}</td>

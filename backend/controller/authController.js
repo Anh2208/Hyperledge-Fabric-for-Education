@@ -263,9 +263,8 @@ export const userLogin = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: "Không tìm thấy người dùng hoặc chọn sai vai trò" });
     }
-
     const checkCorrectPassword = await bcrypt.compare(
       req.body.password,
       user.password,
@@ -275,7 +274,7 @@ export const userLogin = async (req, res) => {
     if (!checkCorrectPassword) {
       return res
         .status(401)
-        .json({ success: false, message: "Incorrect email or password" });
+        .json({ success: false, message: "Email hoặc mật khẩu chưa đúng" });
     }
 
     //create token
@@ -283,7 +282,7 @@ export const userLogin = async (req, res) => {
 
     // create jwt token
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, email: email },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "15d" }
     );

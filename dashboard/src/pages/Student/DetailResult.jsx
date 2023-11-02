@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom'
 import { BASE_URL } from '../../utils/config';
 import axios from 'axios';
 import useAxios from '../../hooks/useAxios';
+import { FaArrowRotateLeft } from 'react-icons/fa6';
+
 const DetailResult = () => {
 
     const { id } = useParams();
@@ -85,7 +87,18 @@ const DetailResult = () => {
         <>
             <section className='content-main'>
                 <div className="content-header">
-                    <h2 className="content-title">Điểm lớp học phần</h2>
+                    <div className="flex flex-row gap-5 m-5">
+                        <div className='p-1 rounded-md border-2 border-black'>
+                            <Link to={`/student`} className="flex justify-between">
+                                <span className='items-center gap-3 rounded-md px-1 py-2'>
+                                    <FaArrowRotateLeft />
+                                </span>
+                                <span className='hidden text-base font-semibold xl:block p-1'>
+                                    Quay lại
+                                </span>
+                            </Link>
+                        </div>
+                    </div>
                     <div className=' bg-cyan-200 rounded-md'>
                         <Link to={`/student/semester/${student._id}`}>
                             <button className="bg-primaryColor px-6 text-white font-[600] h-[44px] flex items-center rounded-md">

@@ -7,6 +7,7 @@ import { FaArrowRotateLeft } from 'react-icons/fa6';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
 import LoadingSpinner from '../../hooks/LoadingSpinner';
+import ReactToPrint from "react-to-print"; // Import ReactToPrint
 import "./result.css"
 const ResultExport = () => {
 
@@ -16,6 +17,9 @@ const ResultExport = () => {
   const [course, setCourse] = useState(`${BASE_URL}group/${id}`);
   const { data: couserTable, loading, error } = useAxios(course);
   const [courses, setCourses] = useState([couserTable.results]);
+  const [hasPermissionError, setHasPermissionError] = useState(false);
+
+  const componentRef = React.useRef();
 
   console.log("courses is ", courses);
 
@@ -29,6 +33,7 @@ const ResultExport = () => {
 
   const handleClickCheck = async (e) => {
     setIsConfirm(true);
+    let checkhasPermissionError = false;
     const hasResultWithoutScore = courses.some((result) => {
       return typeof result.score !== 'number' || isNaN(result.score);
     });
@@ -43,6 +48,7 @@ const ResultExport = () => {
       });
       setIsConfirm(false); // Đặt lại trạng thái loading
     } else {
+
       try {
         const updatedCourses = await Promise.all(couserTable.results.map(async (result) => {
           try {
@@ -54,8 +60,12 @@ const ResultExport = () => {
             const isConfirmed = response.data.result;
 
             return { ...result, confirm: isConfirmed };
-          } catch (error) {
-            return { ...result, confirm: false };
+          } catch (err) {
+            if (err.response.data.message === "Không có quyền truy vấn lịch sử!!") {
+              setHasPermissionError(true);
+              checkhasPermissionError = true;
+            }
+            return ({ ...result, confirm: false });
           }
         }));
 
@@ -65,7 +75,12 @@ const ResultExport = () => {
         setCheck(isConfirmed);
         setIsConfirm(false);
 
-        if (isConfirmed) {
+        if (checkhasPermissionError) {
+          // Ném lỗi "Không có quyền truy vấn lịch sử!!" ra ngoài
+          throw new Error("Không có quyền truy vấn lịch sử!!");
+          // throw new "ddasdsdasdads";
+        }
+        else if (isConfirmed) {
           toast.success("Xác thực dữ liệu thành công!!!");
         } else {
           toast.error("Một trong các kết quả có dữ liệu không đồng bộ", {
@@ -75,12 +90,19 @@ const ResultExport = () => {
             }
           });
         }
-      } catch (error) {
+      } catch (err) {
         // Xử lý lỗi tổng quan ở đây nếu cần thiết
-        console.error(error);
+        console.log(err);
+        toast.error(err.message, {
+          autoClose: 2000,
+          style: {
+            background: 'red',
+          }
+        });
         setIsConfirm(false);
       }
     }
+    setIsConfirm(false);
   }
 
 
@@ -103,7 +125,7 @@ const ResultExport = () => {
         <div className="content-header mb-0">
           <div className="flex flex-row gap-5 m-5">
             <div className='p-1 rounded-md border-2 border-black'>
-              <Link to={"/result"} className="flex justify-between">
+              <Link to={`/result`} className="flex justify-between">
                 <span className='items-center gap-3 rounded-md px-1 py-2'>
                   <FaArrowRotateLeft />
                 </span>
@@ -113,8 +135,32 @@ const ResultExport = () => {
               </Link>
             </div>
           </div>
+          {check == false ? (
+            <>
+              {!isConfirm ? (
+                <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleClickCheck}>
+                  <span className=' text-base font-semibold xl:block px-5 py-1'>
+                    Kiểm tra
+                  </span>
+                </button>
+              ) : (
+                <LoadingSpinner />
+              )}
+            </>
+          ) : (
+            <ReactToPrint
+              trigger={() => (
+                <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1'>
+                  <span className=' text-base font-semibold xl:block px-5 py-1'>
+                    In Điểm
+                  </span>
+                </button>
+              )}
+              content={() => componentRef.current}
+            />
+          )}
         </div>
-        <div>
+        <div ref={componentRef}>
           {loading && <h4 className="text-center pt-5">Loading.....</h4>}
           {error && <h4 className="text-center pt-5">{error}</h4>}
           {!loading && !error && (
@@ -175,7 +221,8 @@ const ResultExport = () => {
                       grade = "";
                     }
                     return (
-                      <tr key={index} className={result.confirm == false ? 'text-red-500' : ''}>
+                      <tr key={index} className={result.confirm == false && hasPermissionError == false ? 'text-red-500' :
+                        (result.score == undefined && result.confirm != undefined && compare && hasPermissionError == false ? 'text-blue-500' : '')}>
                         <td>{index + 1}</td>
                         <td className='text-left'>{result.studentMS}</td>
                         <td className='text-left'>{result.studentName}</td>
@@ -201,27 +248,7 @@ const ResultExport = () => {
             </>
           )}
 
-          <div className='mt-5 flex justify-end mr-10'>
-            {check == false ? (
-              <>
-                {!isConfirm ? (
-                  <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleClickCheck}>
-                    <span className=' text-base font-semibold xl:block px-5 py-1'>
-                      Kiểm tra
-                    </span>
-                  </button>
-                ) : (
-                  <LoadingSpinner />
-                )}
-              </>
-            ) : (
-              <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1'>
-                <span className=' text-base font-semibold xl:block px-5 py-1'>
-                  In Điểm
-                </span>
-              </button>
-            )}
-          </div>
+
         </div>
       </section>
     </>

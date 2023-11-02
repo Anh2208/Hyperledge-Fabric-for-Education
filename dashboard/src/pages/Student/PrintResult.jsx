@@ -7,6 +7,8 @@ import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
 import LoadingSpinner from '../../hooks/LoadingSpinner';
+import ReactToPrint from "react-to-print"; // Import ReactToPrint
+
 
 const PrintResult = () => {
 
@@ -22,7 +24,9 @@ const PrintResult = () => {
     const [toSemester, setToSemester] = useState('');
     const [results, setResults] = useState([]);
     const [compare, setCompare] = useState(false);
+    const [hasPermissionError, setHasPermissionError] = useState(false);
 
+    const componentRef = React.useRef();
 
     const fetchData = async () => {
         try {
@@ -104,11 +108,9 @@ const PrintResult = () => {
 
     const handleClickCheck = async () => {
         setIsConfirm(true);
+        let checkhasPermissionError = false;
         try {
             const checkResult = await Promise.all(results.map(async (result) => {
-                // if (result.score == undefined) {
-                //     return ({ ...result, confirm: true });
-                // } else {
                 try {
                     const axiosInstance = axios.create({
                         withCredentials: true,
@@ -122,6 +124,11 @@ const PrintResult = () => {
                         return ({ ...result, confirm: isConfirmed });
                     }
                 } catch (err) {
+                    console.log(err);
+                    if (err.response.data.message === "Không có quyền truy vấn lịch sử!!") {
+                        setHasPermissionError(true);
+                        checkhasPermissionError = true;
+                    }
                     return ({ ...result, confirm: false });
                 }
                 // }
@@ -132,7 +139,12 @@ const PrintResult = () => {
             setCheck(isConfirmed);
             setIsConfirm(false);
 
-            if (isConfirmed) {
+            if (checkhasPermissionError) {
+                // Ném lỗi "Không có quyền truy vấn lịch sử!!" ra ngoài
+                throw new Error("Không có quyền truy vấn lịch sử!!");
+                // throw new "ddasdsdasdads";
+            }
+            else if (isConfirmed) {
                 toast.success("Xác thực dữ liệu thành công!!!");
             } else {
                 toast.error("Một trong các kết quả có dữ liệu không đồng bộ", {
@@ -144,6 +156,12 @@ const PrintResult = () => {
             }
         } catch (err) {
             console.log("lỗi kiểm tra kết quả", err);
+            toast.error(err.message, {
+                autoClose: 2000,
+                style: {
+                    background: 'red',
+                }
+            });
         }
         setIsConfirm(false);
         setCompare(true);
@@ -190,14 +208,19 @@ const PrintResult = () => {
                             )}
                         </>
                     ) : (
-                        <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1'>
-                            <span className=' text-base font-semibold xl:block px-5 py-1'>
-                                In Điểm
-                            </span>
-                        </button>
+                        <ReactToPrint
+                            trigger={() => (
+                                <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1'>
+                                    <span className=' text-base font-semibold xl:block px-5 py-1'>
+                                        In Điểm
+                                    </span>
+                                </button>
+                            )}
+                            content={() => componentRef.current}
+                        />
                     )}
                 </div>
-                <div className="gap-5 m-5 ">
+                <div className="gap-5 m-5 " ref={componentRef}>
                     <h1 className='text-[1rem]'>Đại học Cần Thơ</h1>
                     <h1 className='text-[1rem]'>Bảng ghi điểm học kỳ</h1>
                     <table className='table_export'>
@@ -259,8 +282,8 @@ const PrintResult = () => {
                                                     grade = "";
                                                 }
                                                 return (
-                                                    <tr key={index} className={result.confirm === false ? 'text-red-500' :
-                                                        (result.score == undefined && result.confirm != undefined && compare ? 'text-blue-500' : '')}>
+                                                    <tr key={index} className={result.confirm == false && hasPermissionError == false ? 'text-red-500' :
+                                                        (result.score == undefined && result.confirm != undefined && compare && hasPermissionError == false ? 'text-blue-500' : '')}>
                                                         <td>{index + 1}</td>
                                                         <td>{result.subjectMS}</td>
                                                         <td>{result.subjectTen}</td>

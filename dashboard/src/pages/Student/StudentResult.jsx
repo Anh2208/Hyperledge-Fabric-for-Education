@@ -24,7 +24,7 @@ const StudentResult = () => {
         <div className=' bg-cyan-200 rounded-md'>
           <Link to={`/student/result/check`}>
             <button className="bg-primaryColor px-6 text-white font-[600] h-[44px] flex items-center rounded-md">
-              Truy vấn kết quả
+              Truy vấn điểm
             </button>
           </Link>
         </div>

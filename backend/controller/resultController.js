@@ -10,6 +10,7 @@ import {
   registerAndEnrollUser,
 } from "../services/fabric/enrollment.js";
 import { buildWallet, buildCCPOrg1 } from "../services/fabric/AppUtil.js";
+import jwt from "jsonwebtoken";
 
 import fs from "fs";
 import dotenv from "dotenv";
@@ -17,6 +18,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import Student from "../models/Student.js";
+import Teacher from "../models/Teacher.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,6 +44,9 @@ export const createResultBlock = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  const token = req.cookies.UserToken;
+  const user = await getUserFromToken(token);
+  console.log("user in create is", user.email);
   try {
     //connect to hyperledger fabric network and contract
     const wallet = await buildWallet(Wallets, walletPath);
@@ -49,7 +54,7 @@ export const createResultBlock = async (req, res) => {
 
     await gateway.connect(cppUser, {
       wallet,
-      identity: String(userId),
+      identity: String(user.email),
       discovery: { enabled: true, asLocalhost: true },
     });
     const network = await gateway.getNetwork(channelName);
@@ -103,11 +108,20 @@ export const createResultBlock = async (req, res) => {
     } finally {
       gateway.disconnect();
     }
-  } catch (error) {
+  } catch (err) {
     session.endSession();
-    console.log("loi ne", error);
-
-    res.status(500).json({ success: false, message: `lưu điểm sinh viên thất bại !!!` });
+    console.log("loi ne", err);
+    if (err.message.includes("Not a valid User") || err.message.includes("Identity not found in wallet")) {
+      res.status(400).json({
+        success: false,
+        message: "Không có quyền ghi điểm!!!",
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "lưu điểm sinh viên thất bại !!!",
+      });
+    }
   }
 };
 
@@ -184,13 +198,17 @@ export const createResult = async (req, res) => {
 export const getResultHistory = async (req, res) => {
   const subjectMS = req.body.subjectMS;
   const studentMS = req.body.studentMS;
+
+  const token = req.cookies.UserToken;
+  const user = await getUserFromToken(token);
+  // console.log("hahahaha", user.email);
   try {
     // connect to ledger and contract
     const wallet = await buildWallet(Wallets, walletPath);
     const gateway = new Gateway();
     await gateway.connect(cppUser, {
       wallet,
-      identity: String(userId),
+      identity: String(user.email),
       discovery: { enabled: true, asLocalhost: true },
     });
     const network = await gateway.getNetwork(channelName);
@@ -222,10 +240,17 @@ export const getResultHistory = async (req, res) => {
 
   } catch (err) {
     console.log("err history is ", err)
-    res.status(400).json({
-      success: false,
-      message: "Failed get history result!!!",
-    });
+    if (err.message.includes("Not a valid User") || err.message.includes("Identity not found in wallet")) {
+      res.status(400).json({
+        success: false,
+        message: "Không có quyền truy vấn lịch sử!!!",
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Failed get history result!!!",
+      });
+    }
   }
 };
 
@@ -521,6 +546,8 @@ export const updateResult = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  const token = req.cookies.UserToken;
+  const user = await getUserFromToken(token);
   try {
     // check data
     const resultStudent = await Result.findById(id);
@@ -551,7 +578,7 @@ export const updateResult = async (req, res) => {
 
     await gateway.connect(cppUser, {
       wallet,
-      identity: String(userId),
+      identity: String(user.email),
       discovery: { enabled: true, asLocalhost: true },
     });
     const network = await gateway.getNetwork(channelName);
@@ -710,11 +737,22 @@ export const confirmResult = async (req, res) => {
     const wallet = await buildWallet(Wallets, walletPath);
     const gateway = new Gateway();
 
-    await gateway.connect(cppUser, {
-      wallet,
-      identity: String(userId),
-      discovery: { enabled: true, asLocalhost: true },
-    });
+    const token = req.cookies.UserToken;
+    const user = await getUserFromToken(token);
+    const teacher = await Teacher.findById(user.id);
+    if (teacher != undefined) {
+      await gateway.connect(cppUser, {
+        wallet,
+        identity: String(userId),
+        discovery: { enabled: true, asLocalhost: true },
+      });
+    } else {
+      await gateway.connect(cppUser, {
+        wallet,
+        identity: String(user.email),
+        discovery: { enabled: true, asLocalhost: true },
+      });
+    }
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
 
@@ -759,16 +797,22 @@ export const confirmResult = async (req, res) => {
     if (dataIsEqual && dataExist) {
       res.status(200).json({ success: true, result: true });
     } else if ((resultBlock == '' && resultMongo.score == undefined)) {
-      console.log("dasdsahgjhhjhcxzhjhbjk");
+      // console.log("dasdsahgjhhjhcxzhjhbjk");
       res.status(200).json({ success: true, message: "Error data, data mongodb in none but data in block exists" });
     } else {
       res.status(200).json({ success: true, result: false });
     }
   } catch (e) {
-
+    console.log("resdasd", e);
     let error = "";
     if (e.message.includes("Kết quả không tồn tại")) {
       error = "Kết quả so sánh không tồn tại trong blockchain";
+    } else if (e.message.includes("Not a valid User") || e.message.includes("Identity not found in wallet")) {
+      error = "Không có quyền truy vấn lịch sử!!"
+      // res.status(400).json({
+      //   success: false,
+      //   message: "Không !có quyền truy vấn lịch sử!!",
+      // });
     } else {
       error = e;
     }
@@ -780,6 +824,8 @@ const compareResult = async (id) => {
   // const MS = studentMS.source;
   try {
     const resultMongo = await Result.findById(id);
+    // const token = req.cookies.UserToken;
+    // const user = await getUserFromToken(token);
 
     const wallet = await buildWallet(Wallets, walletPath);
     const gateway = new Gateway();
@@ -793,12 +839,12 @@ const compareResult = async (id) => {
     const contract = network.getContract(chaincodeName);
     let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS);
 
-    console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+    // console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
     const resultBlock = JSON.parse(result.toString());
 
-    console.log("resultBlock 1 ", resultBlock);
-    console.log("resultMongo 2", resultMongo);
+    // console.log("resultBlock 1 ", resultBlock);
+    // console.log("resultMongo 2", resultMongo);
 
     // so sánh 2 bên dữ liệu
     const fieldsToCompare = [
@@ -845,6 +891,25 @@ const compareResult = async (id) => {
     return error;
   }
 };
+
+
+// Hàm lấy thông tin user từ token
+const getUserFromToken = (token) => {
+  return new Promise((resolve, reject) => {
+    if (!token) {
+      reject("Token is missing");
+    } else {
+      jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+        if (err) {
+          reject("Token is invalid");
+        } else {
+          resolve(user);
+        }
+      });
+    }
+  });
+};
+
 
 // // get result in blockchain
 // export const getResultBlock = async (req, res) => {

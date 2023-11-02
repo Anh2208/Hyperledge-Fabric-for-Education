@@ -21,6 +21,7 @@ import DetailResult from '../pages/Student/DetailResult'
 import Semester from '../pages/Student/Semester'
 import PrintResult from '../pages/Student/PrintResult'
 import CheckResult from '../pages/Student/CheckResult'
+import Login from '../pages/Login'
 
 const Router = () => {
     return (
@@ -32,6 +33,7 @@ const Router = () => {
                 <Routes>
                     <Route path='/' element={<Navigate to="/home" />} />
                     <Route path='/home' element={<Home />} />
+                    <Route path='/login' element={<Login />} />
                     {/* <Route path='/login' element={<Login />} /> */}
                     <Route
                         path='/*'
