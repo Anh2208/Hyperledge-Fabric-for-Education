@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FaArrowRotateLeft } from 'react-icons/fa6';
+import { FaArrowRotateLeft, FaEye } from 'react-icons/fa6';
 import axios from 'axios';
 import { BASE_URL } from '../../utils/config';
 import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
+import LoadingSpinner from '../../hooks/LoadingSpinner';
 
 const CheckResult = () => {
 
@@ -13,10 +14,12 @@ const CheckResult = () => {
     const [results, setResults] = useState([]);
     const [student, setStudent] = useState('');
     const [subject, setSubject] = useState('');
+    const [isConfirm, setIsConfirm] = useState(false);
 
     const handleCheck = async () => {
         // console.log('Mã học phần:', subjectMS);
         // console.log('MSSV:', studentMS);
+        setIsConfirm(true);
         try {
             const axiosInstance = axios.create({
                 withCredentials: true,
@@ -34,6 +37,7 @@ const CheckResult = () => {
                         background: 'red',
                     }
                 });
+                setIsConfirm(false);
                 return;
             }
             const response = await axiosInstance.post(`${BASE_URL}result/search/getResultHistory`, {
@@ -44,10 +48,11 @@ const CheckResult = () => {
             setResults(response.data.data);
             setStudent(studentresult.data.data);
             setSubject(subjectresult.data.data);
-
+            setIsConfirm(false);
             toast.success("Kiểm tra lịch sử thành công");
         } catch (err) {
             console.log("loi kiem tra", err);
+            setIsConfirm(false);
             toast.error(err.response.data.message, {
                 autoClose: 2000,
                 style: {
@@ -133,13 +138,17 @@ const CheckResult = () => {
                                 </div>
                             </div>
                             <div className="flex justify-center items-center">
-                                <button
-                                    className="bg-blue-500 hover.bg-blue-700 text-white font-bold p-2 px-5 rounded focus:outline-none focus:shadow-outline"
-                                    type="button"
-                                    onClick={handleCheck}
-                                >
-                                    Kiểm tra
-                                </button>
+                                {isConfirm ? (
+                                    <LoadingSpinner />
+                                ) : (
+                                    <button
+                                        className="bg-blue-500 hover.bg-blue-700 text-white font-bold p-2 px-5 rounded focus:outline-none focus:shadow-outline"
+                                        type="button"
+                                        onClick={handleCheck}
+                                    >
+                                        Kiểm tra
+                                    </button>
+                                )}
                             </div>
                         </form>
                     </div>
@@ -171,39 +180,41 @@ const CheckResult = () => {
                         </div>
                     }
                 </div>
-                <div>
-                    <h1 className='text-[30px] text-center'>Lịch sử cập nhật điểm</h1>
-                    <table className='table-result mx-auto border-separate border border-slate-400 '>
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Mã lớp HP</th>
-                                <th>Mã GV</th>
-                                <th>Điểm</th>
-                                <th>Học kỳ</th>
-                                <th>Năm học</th>
-                                <th>Thời gian</th>
-                                <th>Người thực hiện</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Array.isArray(results) && results.map((result, index) => {
-                                return (
-                                    <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td>{result.Value.groupMa}</td>
-                                        <td>{result.Value.teacherMS}</td>
-                                        <td>{result.Value.score}</td>
-                                        <td>{result.Value.semester}</td>
-                                        <td>{result.Value.date_awarded}</td>
-                                        <td>{formatDateTime(result.Timestamp)}</td>
-                                        <td>{result.Value.CN}</td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
-                </div>
+                {results != '' && (
+                    <div>
+                        <h1 className='text-[30px] text-center'>Lịch sử cập nhật điểm</h1>
+                        <table className='table-result mx-auto border-separate border border-slate-400 '>
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Mã lớp HP</th>
+                                    <th>Mã GV</th>
+                                    <th>Điểm</th>
+                                    <th>Học kỳ</th>
+                                    <th>Năm học</th>
+                                    <th>Thời gian</th>
+                                    <th>Người thực hiện</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Array.isArray(results) && results.map((result, index) => {
+                                    return (
+                                        <tr key={index}>
+                                            <td>{index + 1}</td>
+                                            <td>{result.Value.groupMa}</td>
+                                            <td>{result.Value.teacherMS}</td>
+                                            <td>{result.Value.score}</td>
+                                            <td>{result.Value.semester}</td>
+                                            <td>{result.Value.date_awarded}</td>
+                                            <td>{formatDateTime(result.Timestamp)}</td>
+                                            <td>{result.Value.CN}</td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </section>
         </>
     )

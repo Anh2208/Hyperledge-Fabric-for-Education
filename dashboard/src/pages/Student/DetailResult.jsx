@@ -115,11 +115,11 @@ const DetailResult = () => {
                     </div>
                     <div className='flex flex-row justify-center gap-3'>
                         {/* lọc theo năm học */}
-                        <div className="flex items-center">
+                        <div>
                             <a>Năm học: </a>
                         </div>
                         <div>
-                            <select id="year" value={currentYear} onChange={handleChangeYear} className='border rounded border-b-black max-w-[100px]'>
+                            <select id="year" value={currentYear} onChange={handleChangeYear} className='border text-center rounded border-b-black max-w-[100px]'>
                                 <option value="2023">2023</option>
                                 <option value="2022">2022</option>
                                 <option value="2021">2021</option>
@@ -129,11 +129,11 @@ const DetailResult = () => {
                             </select>
                         </div>
                         {/* lấy giá trị học kì */}
-                        <div className="flex items-center">
+                        <div>
                             <a>Học kỳ: </a>
                         </div>
                         <div>
-                            <select id="semester" value={currentSemester} onChange={handleChangeSemester} className='border rounded border-b-black max-w-[100px]'>
+                            <select id="semester" value={currentSemester} onChange={handleChangeSemester} className='border rounded border-b-black text-center max-w-[100px]'>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">hè</option>
@@ -141,7 +141,7 @@ const DetailResult = () => {
                             </select>
                         </div>
 
-                        <button onClick={handleClick} className='text-white text-[0.75rem] bg-primaryColor px-2 py-1 rounded'>Liệt kê</button>
+                        <button onClick={handleClick} className='text-white text-[0.75rem] bg-primaryColor px-2 py-0 font-bold rounded'>Liệt kê</button>
                     </div>
                 </div>
                 <div className='table-content my-4'>
@@ -157,8 +157,8 @@ const DetailResult = () => {
                                         <th className='w-[80px]'>Mã HP</th>
                                         <th className='w-auto'>Tên HP</th>
                                         <th className='w-[80px]'>Tín chỉ</th>
-                                        <th className='w-[80px]'>Điểm chữ</th>
                                         <th className='w-[80px]'>Điểm số</th>
+                                        <th className='w-[80px]'>Điểm chữ</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -169,7 +169,10 @@ const DetailResult = () => {
                                             <td className='text-left w-auto'>{result.subjectTen}</td>
                                             <td className='w-[80px]'>{result.subjectSotc}</td>
                                             <td className='w-[80px]'>{result.score}</td>
-                                            <td className='w-[80px]'>Rỗng</td>
+                                            <td className='w-[80px]'>
+                                                {result.score >= 8 ? 'A' : result.score >= 6 ? 'B' :
+                                                    result.score >= 4 ? 'C' : result.score >= 0 ? 'F' : ''};
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

@@ -17,7 +17,8 @@ import {
   deleteResultDB,
   updateResultData,
   confirmResult,
-  getResultByStudentID
+  getResultByStudentID,
+  checkResult
 } from "../controller/resultController.js";
 
 const router = express.Router();
@@ -25,8 +26,11 @@ const router = express.Router();
 // create Result in Mongodb
 router.post("/:id", createResult);
 
-// check synchronized of result
+// check synchronized of result with all history change
 router.post("/check/confirmResult/:id", confirmResult);
+
+// check synchronized of result with current value 
+router.post("/check/checkResult/:id", checkResult);
 
 // create Result in Blockchain
 router.put("/ResultBlock/create", createResultBlock);

@@ -3,15 +3,8 @@ import Group from "../models/Group.js";
 import Subject from "../models/Subject.js";
 import mongoose from "mongoose";
 import { Wallets, Gateway } from "fabric-network";
-import FabricCAServices from "fabric-ca-client";
-import {
-  enrollAdmin,
-  buildCAClient,
-  registerAndEnrollUser,
-} from "../services/fabric/enrollment.js";
 import { buildWallet, buildCCPOrg1 } from "../services/fabric/AppUtil.js";
 import jwt from "jsonwebtoken";
-
 import fs from "fs";
 import dotenv from "dotenv";
 import path from "path";
@@ -20,11 +13,10 @@ import { dirname } from "path";
 import Student from "../models/Student.js";
 import Teacher from "../models/Teacher.js";
 
+dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const walletPath = path.join(__dirname, "..", "wallet");
-
-dotenv.config();
 const userId = "appUser";
 const channelName = "mychannel";
 const chaincodeName = "ledger";
@@ -34,7 +26,6 @@ const cppUser = JSON.parse(fs.readFileSync(process.env.ccpPATH, "utf8"));
 function prettyJSONString(inputString) {
   return JSON.stringify(JSON.parse(inputString), null, 2);
 }
-
 
 // create result in block
 export const createResultBlock = async (req, res) => {
@@ -66,7 +57,7 @@ export const createResultBlock = async (req, res) => {
       const saveResult = await Result.findById(ID);
       await contract.submitTransaction(
         "CreateResult",
-        // ID,
+        ID,
         saveResult.groupMa,
         saveResult.subjectMS,
         saveResult.studentMS,
@@ -201,9 +192,20 @@ export const getResultHistory = async (req, res) => {
 
   const token = req.cookies.UserToken;
   const user = await getUserFromToken(token);
-  // console.log("hahahaha", user.email);
+
   try {
-    // connect to ledger and contract
+    const results = await Result.find({
+      $and: [
+        { subjectMS: req.body.subjectMS },
+        { studentMS: req.body.studentMS },
+      ],
+    });
+
+    if (results == '') {
+      res.status(400).json({ success: false, message: "Sinh viên không học học phần này" });
+      return;
+    }
+    // Connect to ledger and contract
     const wallet = await buildWallet(Wallets, walletPath);
     const gateway = new Gateway();
     await gateway.connect(cppUser, {
@@ -214,29 +216,39 @@ export const getResultHistory = async (req, res) => {
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
 
-    const resultJSON = await contract.evaluateTransaction(
-      "GetResultHistory",
-      subjectMS,
-      studentMS
-    );
-    console.log(`*** Result: ${resultJSON}`);
-    console.log(`*** Result: ${prettyJSONString(resultJSON.toString())}`);
+    const resultHistory = [];
 
-    const jsoncompare = JSON.parse(resultJSON.toString());
-    if (jsoncompare == '') {
-      res.status(400).json({
-        success: false,
-        message: "Không có kết quả trong blockchain!!!",
-      });
-    } else {
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Successful find history Result",
-          data: JSON.parse(resultJSON.toString()),
-        });
+    for (const result of results) {
+      try {
+        const resultJSON = await contract.evaluateTransaction(
+          "GetResultHistory",
+          result.subjectMS,
+          result.studentMS,
+          result._id,
+        );
+        console.log('duiaiiaiaia');
+        const jsoncompare = JSON.parse(resultJSON.toString());
+        console.log("jsoncompare", jsoncompare);
+        if (jsoncompare != '') {
+          for (const resulthistory of jsoncompare) {
+            resultHistory.push(resulthistory); // Thêm trực tiếp jsoncompare vào mảng
+          }
+        }
+      } catch (e) {
+        if (e.message.includes("result does exist in blockchain")) {
+
+        } else {
+          res.status(400).json({ success: false, message: "Lỗi truy vấn lịch sử Blockchain" });
+        }
+
+      }
     }
+
+    res.status(200).json({
+      success: true,
+      message: "Successful find history Result",
+      data: resultHistory,
+    });
 
   } catch (err) {
     console.log("err history is ", err)
@@ -245,10 +257,17 @@ export const getResultHistory = async (req, res) => {
         success: false,
         message: "Không có quyền truy vấn lịch sử!!!",
       });
-    } else {
+    }
+    // else if (err.message.includes("result does exist in blockchain")) {
+    //   res.status(400).json({
+    //     success: false,
+    //     message: "Kết quả chưa có điểm hoặc kết quả chưa được lưu vào Blockchain",
+    //   });
+    // }
+    else {
       res.status(400).json({
         success: false,
-        message: "Failed get history result!!!",
+        message: "Failed get history result l!!!",
       });
     }
   }
@@ -441,7 +460,7 @@ export const getAllResultByGroup = async (req, res) => {
 // get result in mongodb
 // get result by id
 export const getResultByID = async (req, res) => {
-  const id = req.body.id;
+  const id = req.query.id;
   try {
     const result = await Result.findById(id);
     res
@@ -461,7 +480,6 @@ export const getResultByID = async (req, res) => {
 // get result by mssv
 export const getResultByMSSV = async (req, res) => {
   const studentMS = req.query.studentMS;
-
   try {
     const result = await Result.find({ studentMS: studentMS });
 
@@ -560,7 +578,7 @@ export const updateResult = async (req, res) => {
       });
       return;
     }
-    if (check.leng > 0) {
+    if (check.length > 0) {
       res.status(500).json({
         success: false,
         message: check,
@@ -587,7 +605,7 @@ export const updateResult = async (req, res) => {
     // update result in blockchain
     await contract.submitTransaction(
       "UpdateResult",
-      // id,
+      id,
       req.body.data.groupMa,
       req.body.data.subjectMS,
       req.body.data.studentMS,
@@ -761,9 +779,8 @@ export const confirmResult = async (req, res) => {
     console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
     const resultBlock = JSON.parse(result.toString());
-
-    console.log("resultBlock 1 ", resultBlock);
-    console.log("resultMongo 2", resultMongo);
+    // console.log("resultBlock 1 ", resultBlock);
+    // console.log("resultMongo 2", resultMongo);
 
     // so sánh 2 bên dữ liệu
     const fieldsToCompare = [
@@ -780,7 +797,8 @@ export const confirmResult = async (req, res) => {
     let dataExist = true;
     const dataIsEqual = fieldsToCompare.every((field) =>
       resultBlock.some((result) =>
-        (result.Value[field] == resultMongo[field]) &&
+        (result.Value[field] == resultMongo[field])
+        &&
         (
           new Date(result.Timestamp).toDateString() === new Date(resultMongo.createdAt).toDateString() ||
           new Date(result.Timestamp).toDateString() === new Date(resultMongo.updatedAt).toDateString()
@@ -798,7 +816,7 @@ export const confirmResult = async (req, res) => {
       res.status(200).json({ success: true, result: true });
     } else if ((resultBlock == '' && resultMongo.score == undefined)) {
       // console.log("dasdsahgjhhjhcxzhjhbjk");
-      res.status(200).json({ success: true, message: "Error data, data mongodb in none but data in block exists" });
+      res.status(200).json({ success: true, message: "Error data, data mongodb is none but data in block exists" });
     } else {
       res.status(200).json({ success: true, result: false });
     }
@@ -809,16 +827,94 @@ export const confirmResult = async (req, res) => {
       error = "Kết quả so sánh không tồn tại trong blockchain";
     } else if (e.message.includes("Not a valid User") || e.message.includes("Identity not found in wallet")) {
       error = "Không có quyền truy vấn lịch sử!!"
-      // res.status(400).json({
-      //   success: false,
-      //   message: "Không !có quyền truy vấn lịch sử!!",
-      // });
     } else {
       error = e;
     }
     res.status(400).json({ success: false, message: error });
   }
 }
+
+export const checkResult = async (req, res) => {
+  const id = req.params.id;
+
+  const resultMongo = await Result.findById(id);
+  try {
+    const wallet = await buildWallet(Wallets, walletPath);
+    const gateway = new Gateway();
+
+    const token = req.cookies.UserToken;
+    const user = await getUserFromToken(token);
+    const teacher = await Teacher.findById(user.id);
+    if (teacher != undefined) {
+      await gateway.connect(cppUser, {
+        wallet,
+        identity: String(userId),
+        discovery: { enabled: true, asLocalhost: true },
+      });
+    } else {
+      await gateway.connect(cppUser, {
+        wallet,
+        identity: String(user.email),
+        discovery: { enabled: true, asLocalhost: true },
+      });
+    }
+
+    const network = await gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
+    let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS, id);
+
+    const resultBlock = JSON.parse(result.toString());
+    // so sánh 2 bên dữ liệu
+    const fieldsToCompare = [
+      "groupMa",
+      "subjectMS",
+      "studentMS",
+      "teacherMS",
+      "semester",
+      "score",
+      "date_awarded",
+    ];
+
+    let dataIsEqual = true;
+    fieldsToCompare.forEach((field) => {
+      const resultBlockString = String(resultBlock[field]);
+      const resultMongoString = String(resultMongo[field]);
+      // console.log("resultBlockString", resultBlockString);
+      if (resultBlockString !== resultMongoString) {
+        dataIsEqual = false;
+        return;
+      }
+    });
+    // console.log("dataIsEqual", dataIsEqual);
+
+    gateway.disconnect();
+    if (dataIsEqual) {
+      res.status(200).json({ success: true, result: true });
+    } else {
+      console.log("resultBlock.Value.score", resultBlock.score);
+      res.status(200).json({ success: true, result: dataIsEqual, scoreBlock: resultBlock.score });
+    }
+
+  } catch (e) {
+    console.log(e);
+    if (resultMongo.score == undefined && e.message.includes("Kết quả không tồn tại")) {
+      res.status(200).json({ success: false, result: true });
+      return;
+    }
+    if (resultMongo.score != undefined && e.message.includes("Kết quả không tồn tại")) {
+      res.status(200).json({ success: false, result: false });
+      return;
+    }
+    let err = '';
+    if (e.message.includes("Kết quả không tồn tại")) {
+      err = "Kết quả không tồn tại";
+    } else {
+      err = e
+    }
+    res.status(400).json({ success: false, message: err });
+  }
+};
+
 // so sánh data resutt mongodb và blockchain
 const compareResult = async (id) => {
   // const MS = studentMS.source;
@@ -837,7 +933,7 @@ const compareResult = async (id) => {
     });
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
-    let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS);
+    let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS, id);
 
     // console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
@@ -862,7 +958,7 @@ const compareResult = async (id) => {
     fieldsToCompare.forEach((field) => {
       const resultBlockString = String(resultBlock[field]);
       const resultMongoString = String(resultMongo[field]);
-      console.log("resultBlockString", resultBlockString);
+      // console.log("resultBlockString", resultBlockString);
       if (resultBlockString !== resultMongoString) {
         dataIsEqual = false;
         return;

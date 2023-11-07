@@ -918,11 +918,11 @@ ul.row-sm {
   max-width: 100px;
 }
 
-.form-control{
+.form-control {
   outline: none;
 }
 
-.form-select{
+.form-select {
   border: 2;
 }
 
@@ -1031,6 +1031,7 @@ ul.row-sm {
 }
 
 .table-result {}
+
 /* 
 .table-result th {
   min-width: 100px;
@@ -1062,7 +1063,7 @@ ul.row-sm {
   background-color: #0056b3;
 }
 
-h1{
+h1 {
   font-weight: bold;
 }
 
@@ -1085,4 +1086,8 @@ h1{
   justify-content: center;
   text-align: center;
   font-weight: bold;
+}
+
+.scrolled {
+  top: 0;
 }

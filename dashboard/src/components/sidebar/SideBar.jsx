@@ -1,6 +1,7 @@
 import { FaAddressCard, FaHouse, FaLayerGroup, FaBook, FaRegCalendarCheck, FaGraduationCap, FaIdBadge } from "react-icons/fa6";
-
 import { NavLink } from "react-router-dom";
+import './sidebar.css'
+import React, { useState, useEffect } from "react";
 
 const sidebarLinks = [
   {
@@ -41,8 +42,28 @@ const sidebarLinks = [
 ];
 
 function Sidebar() {
+
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 90) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
   return (
-    <div className="sticky top-0 flex h-screen w-full flex-col justify-between border-r border-gray-200 bg-white px-1 py-5 xl:py-12 xl:px-2">
+    // <div className="sticky sidenav top-0 flex h-screen w-full flex-col justify-between border-r border-gray-200 bg-white px-1 py-5 xl:py-12 xl:px-2">
+    <div className={`sidenav flex flex-col justify-between border-r border-gray-200 bg-white px-1 py-5 xl:py-12 xl:px-2 ${isScrolled ? "scrolled" : ""}`}>
+      {/* <div className="sidenav flex flex-col justify-between border-r border-gray-200 bg-white px-1 py-5 xl:py-12 xl:px-2"> */}
       <div className="ie-logo px-3 py-0 text-center xl:text-left">
         <div className="text-xl font-medium text-gray-900 xl:px-3 xl:text-2xl">
           <span className="block xl:hidden">AD</span>

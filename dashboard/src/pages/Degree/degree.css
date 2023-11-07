@@ -1,0 +1,245 @@
+.table-degree {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 80%;
+    text-align: center;
+    justify-content: center;
+    margin-left: 20px;
+    margin-right: 20px;
+    /* margin-right: 20px; */
+}
+
+.table-degree span {
+    max-width: 210px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+
+.table-degree th {
+    background-color: #00BFFF !important;
+    font-weight: normal;
+    padding: 0.5rem;
+}
+
+.table-degree td {
+    padding: 10px !important;
+}
+
+.result-total {
+    width: 80%;
+}
+
+.classification {
+    width: 70%;
+}
+
+.table-save {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: 10px;
+    margin-left: 10px !important;
+    min-width: 540px;
+}
+
+.table-save td {
+    gap: 4;
+    padding: 10px;
+}
+
+.degree_form h1 {
+    color: red;
+    font-weight: bold;
+    margin-left: 20px;
+    font-size: 30px;
+}
+
+.test-bg {
+    background-image: url(../../asset/images/background-degree.jpg) !important;
+    background-size: cover;
+    /* Kích thước nền sẽ phủ toàn bộ phần nền của phần tử .test-bg */
+    background-position: center;
+    /* Canh giữa hình nền */
+    background-repeat: no-repeat;
+    /* Không lặp lại hình nền */
+}
+
+.table-degree-search {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+.table-degree-search td {
+    gap: 4;
+    padding: 8px;
+}
+
+.hover14 figure {
+    position: relative;
+}
+
+.hover14 figure::before {
+    position: absolute;
+    top: 0;
+    left: -75%;
+    z-index: 2;
+    display: block;
+    content: '';
+    width: 50%;
+    height: 100%;
+    background: -webkit-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .3) 100%);
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .3) 100%);
+    -webkit-transform: skewX(-25deg);
+    transform: skewX(-25deg);
+}
+
+.hover14 figure:hover::before {
+    -webkit-animation: shine .75s;
+    animation: shine .75s;
+}
+
+@-webkit-keyframes shine {
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes shine {
+    100% {
+        left: 100%;
+    }
+}
+
+/*  search form */
+:root {
+    --rad: .7rem;
+    --dur: .3s;
+    --color-dark: #2f2f2f;
+    --color-light: #fff;
+    --color-brand: #57bd84;
+    --font-fam: 'Lato', sans-serif;
+    /* --height: 3rem; */
+    --btn-width: 4rem;
+    --bez: cubic-bezier(0, 0, 0.43, 1.49);
+}
+
+.form-degree {
+    position: relative;
+    width: 20rem;
+    background: var(--color-brand);
+    border-radius: var(--rad);
+}
+
+.form-degree input {
+    height: var(--height);
+    font-family: var(--font-fam);
+    border: 0;
+    color: var(--color-dark);
+    font-size: 1rem;
+    height: 3rem
+}
+
+.form-degree button {
+    height: var(--height);
+    font-family: var(--font-fam);
+    border: 0;
+    color: var(--color-dark);
+    font-size: 1rem;
+    height: 3rem
+}
+
+.form-degree input[type="search"] {
+    outline: 0;
+    width: 100%;
+    background: var(--color-light);
+    padding: 0 1.6rem;
+    border-radius: var(--rad);
+    appearance: none;
+    transition: all var(--dur) var(--bez);
+    transition-property: width, border-radius;
+    z-index: 1;
+    position: relative;
+}
+
+.form-degree button {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--btn-width);
+    font-weight: bold;
+    background: var(--color-brand);
+    border-radius: 0 var(--rad) var(--rad) 0;
+}
+
+.form-degree span {
+    /* display: none;
+    position: absolute;
+    top: 0;
+    right: 0; */
+    background-color: red;
+}
+
+
+.form-degree input:not(:placeholder-shown) {
+    border-radius: var(--rad) 0 0 var(--rad);
+    width: calc(100% - var(--btn-width));
+
+    +button {
+        display: block;
+    }
+}
+
+.form-degree label {
+    position: absolute;
+    clip: rect(1px, 1px, 1px, 1px);
+    padding: 0;
+    border: 0;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+}
+
+.box-infor-left {
+    background: rgb(66, 194, 237);
+    color: white;
+    font-weight: bold;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    box-shadow: rgba(0, 176, 240, 0.4) -5px 5px, rgba(19, 190, 242, 0.3) -10px 10px, rgba(68, 220, 236, 0.2) -15px 15px, rgba(174, 232, 236, 0.1) -20px 20px, rgba(1, 119, 187, 0.05) -25px 25px;
+}
+
+
+.box-infor-mid {
+    background: rgb(66, 194, 237);
+    color: white;
+    font-weight: bold;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    box-shadow: rgba(0, 176, 240, 0.4) 0px 5px, rgba(19, 190, 242, 0.3) 0px 10px, rgba(68, 220, 236, 0.2) 0px 15px, rgba(174, 232, 236, 0.1) 0px 20px, rgba(1, 119, 187, 0.05) 0px 25px;
+}
+
+.box-infor-right {
+    background: rgb(66, 194, 237);
+    color: white;
+    font-weight: bold;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    box-shadow: rgba(0, 176, 240, 0.4) 5px 5px, rgba(19, 190, 242, 0.3) 10px 10px, rgba(68, 220, 236, 0.2) 15px 15px, rgba(174, 232, 236, 0.1) 20px 20px, rgba(1, 119, 187, 0.05) 25px 25px;
+}
+
+/* update */
+.image-label {
+    display: inline-block;
+    background-color: rgb(5, 188, 238);
+    color: white;
+    padding: 0.5rem;
+    font-family: sans-serif;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}

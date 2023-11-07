@@ -56,12 +56,12 @@ const ResultExport = () => {
               withCredentials: true,
             });
 
-            const response = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${result._id}`);
+            const response = await axiosInstance.post(`${BASE_URL}result/check/checkResult/${result._id}`);
             const isConfirmed = response.data.result;
 
             return { ...result, confirm: isConfirmed };
           } catch (err) {
-            if (err.response.data.message === "Không có quyền truy vấn lịch sử!!") {
+            if (err.response.data.message === "Kết quả không tồn tại") {
               setHasPermissionError(true);
               checkhasPermissionError = true;
             }
@@ -77,7 +77,7 @@ const ResultExport = () => {
 
         if (checkhasPermissionError) {
           // Ném lỗi "Không có quyền truy vấn lịch sử!!" ra ngoài
-          throw new Error("Không có quyền truy vấn lịch sử!!");
+          throw new Error("Kết quả không tồn tại trong blockchain");
           // throw new "ddasdsdasdads";
         }
         else if (isConfirmed) {
@@ -256,40 +256,3 @@ const ResultExport = () => {
 }
 
 export default ResultExport
-
-// backup
-// const handleClickSave = async (e) => {
-//   setIsConfirm(true);
-//   const updateResult = [...courses];
-//   let confirm = true;// kiểm tra kết quả học tập có đồng bộ hay không?
-//   for (let i = 0; i < couserTable.results.length; i++) {
-//     try {
-//       const axiosInstance = axios.create({
-//         withCredentials: true,
-//       });
-//       const test = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${couserTable.results[i]._id}`);
-//       console.log("test is ", test.data.result);
-//       if (test.data.result) {
-//         courses[i].confirm = true;
-//       } else {
-//         courses[i].confirm = false;
-//       }
-//     } catch (e) {
-//       courses[i].confirm = false;
-//       confirm = false;
-//     }
-//   }
-//   setCourses(updateResult);
-//   setCheck(confirm);
-//   setIsConfirm(false);
-//   if(confirm == true){
-//     toast.success("Xác thực dữ liệu thành công!!!");
-//   }else{
-//     toast.error("Xác thực kết quả lớp học phần thất bại", {
-//       autoClose: 2000,
-//       style: {
-//         background: 'red',
-//       }
-//     })
-//   }
-// }

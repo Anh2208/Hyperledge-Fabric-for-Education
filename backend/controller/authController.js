@@ -229,7 +229,7 @@ export const createAdmin = async (req, res) => {
 
     console.log("Create teacher in blockchain successfully");
 
-    const publicKey = await create_user(req.body.email);
+    const publicKey = await create_user(req.body.email, 'admin');
 
     await Admin.findByIdAndUpdate(adminID, {
       $set: { publicKey: publicKey },

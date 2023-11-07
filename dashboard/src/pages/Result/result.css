@@ -55,7 +55,8 @@ input::-webkit-inner-spin-button {
 }
 
 .table_export {
-    width: 630px;
+    width: 900px;
+    /* width: auto;  */
     border-collapse: unset;
 }
 
@@ -132,4 +133,30 @@ input::-webkit-inner-spin-button {
     border-radius: 10px 10px 0px 0px;
     text-align: center;
     margin-bottom: 0px !important;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
 }

@@ -22,6 +22,10 @@ import Semester from '../pages/Student/Semester'
 import PrintResult from '../pages/Student/PrintResult'
 import CheckResult from '../pages/Student/CheckResult'
 import Login from '../pages/Login'
+import DegreeCreate from '../pages/Degree/DegreeCreate'
+import DegreeVerify from '../pages/Degree/DegreeVerify'
+import DegreeResult from '../pages/Degree/DegreeResult'
+import DegreeUpdate from '../pages/Degree/DegreeUpdate'
 
 const Router = () => {
     return (
@@ -39,7 +43,7 @@ const Router = () => {
                         path='/*'
                         element={ // Sử dụng element và Routes bên trong Route để chỉ thêm Sidebar cho các trang con sau đó
                             <div className='flex'>
-                                <aside className='max-w-[64px] xl:w-full xl:max-w-[280px]'>
+                                <aside className='sm:w-full max-w-[64px] md:max-w-[280px]'>
                                     <Sidebar />
                                 </aside>
                                 <div className='flex-1 overflow-auto'>
@@ -61,6 +65,10 @@ const Router = () => {
                                         <Route path='/student/semester/:id' element={<Semester />} />
                                         <Route path='/student/semester/print/:id' element={<PrintResult />} />
                                         <Route path='/degree' element={<DegreeComponent />} />
+                                        <Route path='/degree/create' element={<DegreeCreate />} />
+                                        <Route path='/degree/update' element={<DegreeUpdate />} />
+                                        <Route path='/degree/result' element={<DegreeResult />} />
+                                        <Route path='/degree/create/verify' element={<DegreeVerify />} />
                                     </Routes>
                                 </div>
                             </div>

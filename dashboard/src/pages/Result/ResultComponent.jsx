@@ -202,7 +202,7 @@ const ResultComponent = () => {
                                 Liệt kê
                             </button>
                         </div>
-                        <div className='w-full flex ml-[150px]' >
+                        <div className='mx-auto flex' >
                             {Array.isArray(courses) ? courses.map((course, index) =>
                                 course.groupTen === listedCourse && (
                                     <div className='flex' key={index}>

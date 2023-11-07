@@ -25,7 +25,7 @@ const PrintResult = () => {
     const [results, setResults] = useState([]);
     const [compare, setCompare] = useState(false);
     const [hasPermissionError, setHasPermissionError] = useState(false);
-
+    const [errResult, setErrResult] = useState([]);
     const componentRef = React.useRef();
 
     const fetchData = async () => {
@@ -46,8 +46,7 @@ const PrintResult = () => {
                 // Lọc kết quả ngay khi nhận được dữ liệu
                 const filteredResults = await filterResults(response.data.data);
                 setResults(filteredResults);
-                console.log("tes tpw ddasd", response.data.data);
-
+                // console.log("tes tpw ddasd", response.data.data);
             }
         } catch (err) {
             console.log("Lỗi lấy dữ liệu:", err);
@@ -115,34 +114,36 @@ const PrintResult = () => {
                     const axiosInstance = axios.create({
                         withCredentials: true,
                     })
-                    const response = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${result._id}`);
+                    const response = await axiosInstance.post(`${BASE_URL}result/check/checkResult/${result._id}`);
+                    console.log("respoidsada", response);
                     const isConfirmed = response.data.result;
-                    console.log("isConfirmed", isConfirmed);
-                    if (isConfirmed == undefined) {
-                        return ({ ...result, confirm: true });
+                    if (response.data.scoreBlock != undefined) {
+                        return { ...result, confirm: isConfirmed, scoreBlock: response.data.scoreBlock };
                     } else {
-                        return ({ ...result, confirm: isConfirmed });
+                        return { ...result, confirm: isConfirmed };
                     }
+
                 } catch (err) {
                     console.log(err);
-                    if (err.response.data.message === "Không có quyền truy vấn lịch sử!!") {
-                        setHasPermissionError(true);
-                        checkhasPermissionError = true;
-                    }
-                    return ({ ...result, confirm: false });
+                    // if (result.score && err.message.includes("Kết quả không tồn tại")) {
+                    //     console.log("result.score", result.score);
+                    //     return ({ ...result, confirm: true });
+                    // }
+                    //  else {
+                    //     throw new Error("Lỗi truy vấn");
+                    // }
                 }
-                // }
-
             }));
+            console.log("checkResult", checkResult);
             const isConfirmed = checkResult.every((result) => result.confirm);
+            const unconfirmedResults = checkResult.filter((result) => result.confirm === false);
             setResults(checkResult);
             setCheck(isConfirmed);
             setIsConfirm(false);
+            setErrResult(unconfirmedResults)
 
             if (checkhasPermissionError) {
-                // Ném lỗi "Không có quyền truy vấn lịch sử!!" ra ngoài
-                throw new Error("Không có quyền truy vấn lịch sử!!");
-                // throw new "ddasdsdasdads";
+
             }
             else if (isConfirmed) {
                 toast.success("Xác thực dữ liệu thành công!!!");
@@ -166,7 +167,6 @@ const PrintResult = () => {
         setIsConfirm(false);
         setCompare(true);
     }
-    // console.log("Result sau khi ktra la", results);
     return (
         <>
             <ToastContainer
@@ -230,7 +230,7 @@ const PrintResult = () => {
                                 <td className='column_right'>
                                     <strong>{student.name} </strong>
                                     <font>
-                                        - &nbsp; Mã số : <strong>G1906001</strong>
+                                        - &nbsp; Mã số : <strong>{student.mssv}</strong>
                                     </font>
                                 </td>
                             </tr>
@@ -258,13 +258,13 @@ const PrintResult = () => {
                                     <table className='table_export text-left'>
                                         <thead>
                                             <tr>
-                                                <th className='w-[50px]'>STT</th>
+                                                <th className='w-[50px] text-center'>STT</th>
                                                 <th className='w-[70px]'>Mã HP</th>
                                                 <th className='w-[150px]'>Tên HP</th>
                                                 <th className='w-[50px]'>Nhóm</th>
-                                                <th className='w-[70px]'>Số tín chỉ</th>
-                                                <th className='w-[70px]'>Điểm số</th>
-                                                <th className='w-[70px]'>Điểm chữ</th>
+                                                <th className='w-[70px] text-center'>Số tín chỉ</th>
+                                                <th className='w-[70px] text-center'>Điểm số</th>
+                                                <th className='w-[70px] text-center'>Điểm chữ</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -282,9 +282,9 @@ const PrintResult = () => {
                                                     grade = "";
                                                 }
                                                 return (
-                                                    <tr key={index} className={result.confirm == false && hasPermissionError == false ? 'text-red-500' :
-                                                        (result.score == undefined && result.confirm != undefined && compare && hasPermissionError == false ? 'text-blue-500' : '')}>
-                                                        <td>{index + 1}</td>
+                                                    <tr key={index} className={result.score != undefined && result.confirm == false && hasPermissionError == false ? 'text-red-500' :
+                                                        (result.score == undefined && result.confirm == true && compare && hasPermissionError == false ? 'text-blue-500' : '')}>
+                                                        <td className=' text-center'>{index + 1}</td>
                                                         <td>{result.subjectMS}</td>
                                                         <td>{result.subjectTen}</td>
                                                         <td>{result.groupMa}</td>
@@ -316,6 +316,39 @@ const PrintResult = () => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <div>
+                    {Array.isArray(errResult) && errResult.length > 0 ? (
+                        <table className='w-[80%] text-center'>
+                            <thead>
+                                <tr>
+                                    <th className='w-[50px]'>STT</th>
+                                    <th className='w-[70px]'>Mã HP</th>
+                                    <th className='w-[150px]'>Tên HP</th>
+                                    <th className='w-[50px]'>Nhóm</th>
+                                    <th className='w-[70px]'>Số tín chỉ</th>
+                                    <th className='w-[100px]'>Điểm mongodb</th>
+                                    <th className='w-[100px]'>Điểm blockchain</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {errResult.map((result, index) => (
+                                    <tr key={index}>
+                                        <td>{index + 1}</td>
+                                        <td>{result.subjectMS}</td>
+                                        <td className='text-left'>{result.subjectTen}</td>
+                                        <td>{result.groupMa}</td>
+                                        <td>{result.subjectSotc}</td>
+                                        <td>{result.score || 'null'}</td>
+                                        <td>{result.scoreBlock || 'null'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        null
+
+                    )}
                 </div>
             </section>
         </>

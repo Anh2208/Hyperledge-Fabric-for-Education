@@ -1,4 +1,4 @@
-import { Wallets } from "fabric-network";
+import { Gateway, Wallets } from "fabric-network";
 import FabricCAServices from "fabric-ca-client";
 import {
   enrollAdmin,
@@ -22,7 +22,11 @@ const walletPath = path.join(__dirname, "..", "wallet");
 dotenv.config();
 const mspOrg1 = "Org1MSP";
 const cppUser = JSON.parse(fs.readFileSync(process.env.ccpPATH, "utf8"));
-
+const userId = "appUser";
+const channelName = "mychannel";
+const chaincodeName = "ledger";
+const nameOrg = "Cần Thơ University";
+const symbolOrg = 'CTU';
 export const fabric_initial_system = async (mspOrg1) => {
   try {
     const ccp = buildCCPOrg1();
@@ -39,11 +43,35 @@ export const fabric_initial_system = async (mspOrg1) => {
     await enrollAdmin(caClient, wallet, mspOrg1, 'admin');
 
     console.log("Create fabric-initial-system successfully!!!");
-    create_user("anhg1906001@gmail.com", "teacher");
+
+    create_user("anhg1906001@gmail.com", "teacher"); // create teacher
   } catch (error) {
     console.error(`Failed to load network : ${error}`);
   }
 };
+
+export const InitializeNFT = async () => {
+
+  const wallet = await buildWallet(Wallets, walletPath);
+  const gateway = new Gateway();
+
+  await gateway.connect(cppUser, {
+    wallet,
+    identity: String(userId),
+    discovery: { enabled: true, asLocalhost: true },
+  });
+
+  const network = await gateway.getNetwork(channelName);
+  const contract = network.getContract(chaincodeName);
+  try {
+    const nameKey = await contract.submitTransaction('Initialize', nameOrg, symbolOrg);
+    console.log("InitializeNFT succsessfully!!!", nameKey);
+    gateway.disconnect();
+  } catch (err) {
+    console.log("Error InitializeNFT,", err);
+    gateway.disconnect();
+  }
+}
 
 export const create_user = async (userId, role, req, res, next) => {
   try {

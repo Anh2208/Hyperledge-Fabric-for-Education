@@ -1,0 +1,8 @@
+.sidenav {
+    position: fixed;
+    overflow-x: hidden;
+}
+
+.scrolled {
+    top: 0;
+}

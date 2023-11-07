@@ -131,7 +131,7 @@ const CourseComponent = () => {
                                                         </Link>
                                                     </button>
                                                 </td>
-                                                <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                <td style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px' }}>
                                                     <button>
                                                         <Link
                                                             to={`/course/update/${course._id}`}
@@ -141,11 +141,12 @@ const CourseComponent = () => {
                                                         </Link>
                                                     </button>
                                                     <button
-                                                        className="ml-3 rounded-full bg-orange-200 py-[3px] px-3 text-xs 
-                                                            text-orange-900 transition-all hover:bg-orange-100"
                                                         onClick={() => deletehandler(course._id, course.groupMa)}
                                                     >
-                                                        Xóa
+                                                        <span className='className="ml-3 rounded-full bg-orange-200 py-[3px] px-3 text-xs text-orange-900 transition-all hover:bg-orange-100"'>
+                                                            Xóa
+                                                        </span>
+
                                                     </button>
                                                 </td>
                                             </tr>

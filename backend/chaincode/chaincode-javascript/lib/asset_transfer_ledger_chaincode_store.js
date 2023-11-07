@@ -6,10 +6,18 @@ const ClientIdentity = require('fabric-shim').ClientIdentity;
 const { Certificate } = require('@fidm/x509')
 const KJUR = require("jsrsasign");
 
+// firstkey of nft
+const nftPrefix = 'ctu_nft';
+
+// Define key names for options
+const nameKey = 'name';
+const symbolKey = 'symbol';
+
 class StoreContract extends Contract {
   // Contract for Result
   async CreateResult(
     ctx,
+    ID,
     groupMa,
     subjectMS,
     studentMS,
@@ -21,13 +29,17 @@ class StoreContract extends Contract {
     access
   ) {
 
-    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [ID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     // lấy thông tin người tạo transaction
     let userkey = ctx.clientIdentity.getID();
     let x509Data = userkey.split("x509::")[1];
     let CN = /\/CN=([^/]+)/.exec(x509Data);
     CN = CN[1].replace(/::$/, ''); // Bỏ dấu hai chấm (::) đằng sau "appUser"
 
+    const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
+    if (clientMSPID !== 'Org1MSP') {
+      throw new Error('client is not authorized to mint new tokens');
+    }
 
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin')) {
@@ -44,6 +56,7 @@ class StoreContract extends Contract {
 
     let result = {
       docType: "result",
+      ID,
       groupMa,
       subjectMS,
       studentMS,
@@ -55,7 +68,7 @@ class StoreContract extends Contract {
       CN
     };
 
-    const exists = await this.ResultExists(ctx, subjectMS, studentMS);// kiểm tra kết quả trong world state
+    const exists = await this.ResultExists(ctx, subjectMS, studentMS, ID);// kiểm tra kết quả trong world state
     if (!exists) {
       await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(result)));
     } else {
@@ -69,13 +82,14 @@ class StoreContract extends Contract {
   }
 
   // GetAssetHistory returns the chain of custody for an asset since issuance.
-  async GetResultHistory(ctx, subjectMS, studentMS) {
-    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
+  async GetResultHistory(ctx, subjectMS, studentMS, ID) {
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [ID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'admin')) {
       throw new Error('Not a valid User');
     }
-    if (resultKey == undefined) {
+    const exists = await this.ResultExists(ctx, subjectMS, studentMS, ID);// kiểm tra kết quả trong world state
+    if (!exists) {
       throw new Error('result does exist in blockchain')
     }
     let resultsIterator = await ctx.stub.getHistoryForKey(resultKey);
@@ -112,8 +126,8 @@ class StoreContract extends Contract {
     ); //shim.success(queryResults);
   }
 
-  async getSingleResult(ctx, subjectMS, studentMS) {// get all result by resultID
-    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
+  async getSingleResult(ctx, subjectMS, studentMS, resultID) {// get all result by resultID
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     const resultState = await ctx.stub.getState(resultKey);
     if (resultState && resultState.length > 0) {
       return JSON.parse(resultState.toString("utf8"));
@@ -133,7 +147,6 @@ class StoreContract extends Contract {
       JSON.stringify(queryString),
     ); //shim.success(queryResults);
   }
-
 
   async getAllResultByType(ctx, docType) {// get all result by docType
     let queryString = {};
@@ -195,7 +208,7 @@ class StoreContract extends Contract {
   //update Result
   async UpdateResult(
     ctx,
-    // resultID,
+    resultID,
     groupMa,
     subjectMS,
     studentMS,
@@ -206,7 +219,7 @@ class StoreContract extends Contract {
     date_awarded,
     access
   ) {
-    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     // lấy thông tin người tạo transaction
     let userkey = ctx.clientIdentity.getID();
     let x509Data = userkey.split("x509::")[1];
@@ -228,13 +241,14 @@ class StoreContract extends Contract {
     }
 
     // const exists = await this.CheckResultExists(ctx, subjectMS, studentMS);
-    const exists = await this.ResultExistsByID(ctx, subjectMS, studentMS);
+    const exists = await this.ResultExistsByID(ctx, subjectMS, studentMS, resultID);
     if (!exists) {
       throw Error('Result does not exists in blockchain');
     }
 
     let result = {
       docType: "result",
+      resultID,
       groupMa,
       subjectMS,
       studentMS,
@@ -258,6 +272,119 @@ class StoreContract extends Contract {
     }
 
     await ctx.stub.deleteState(resultID);
+  }
+
+  // create Degree
+  async createDegree(
+    ctx,
+    university,
+    degreeType,
+    major,
+    studentMS,
+    studentName,
+    studentDate,
+    score,
+    classification,
+    formOfTraining,
+    code,
+    inputbook,
+    image,
+  ) {
+
+    let degreeKey = ctx.stub.createCompositeKey('Degree_CTU', [studentMS + '-' + major]);// tạp key cho result
+
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'admin')) {
+      throw new Error('Not have access');
+    }
+
+    let result = {
+      docType: "degree",
+      university,
+      degreeType,
+      major,
+      studentMS,
+      studentName,
+      studentDate,
+      score,
+      classification,
+      formOfTraining,
+      code,
+      inputbook,
+      image,
+    };
+
+    const exists = await this.DegreeExists(ctx, studentMS, major);// kiểm tra degree tồn tại trong world state
+    if (!exists) {
+      await this.MintWithTokenURI(ctx, code, degreeKey, studentName);
+      await ctx.stub.putState(degreeKey, Buffer.from(JSON.stringify(result)));
+    } else {
+      throw Error('Degree exists in blockchain');
+    }
+  }
+
+  async getDegree(ctx, tokenId) {
+
+    let nft = await this._readNFT(ctx, tokenId);
+    let resultKey = nft.tokenURI;
+
+    const degreeState = await ctx.stub.getState(resultKey);
+    if (degreeState && degreeState.length > 0) {
+      return JSON.parse(degreeState.toString("utf8"));
+    }
+    throw new Error("Kết quả bằng cấp không tồn tại!!!");
+  }
+
+  // update degree
+  async updateDegree(
+    ctx,
+    university,
+    degreeType,
+    major,
+    studentMS,
+    studentName,
+    studentDate,
+    score,
+    classification,
+    formOfTraining,
+    code,
+    inputbook,
+    image,
+    oldNFT,
+  ) {
+
+    let degreeKey = ctx.stub.createCompositeKey('Degree_CTU', [studentMS + '-' + major]);// tạp key cho result
+
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'admin')) {
+      throw new Error('Not have access');
+    }
+
+    let result = {
+      docType: "degree",
+      university,
+      degreeType,
+      major,
+      studentMS,
+      studentName,
+      studentDate,
+      score,
+      classification,
+      formOfTraining,
+      code,
+      inputbook,
+      image,
+    };
+
+    const exists = await this.DegreeExists(ctx, studentMS, major);// kiểm tra degree tồn tại trong world state
+    if (exists) {
+      await this.Burn(ctx, oldNFT);
+      await this.MintWithTokenURI(ctx, code, degreeKey, studentName);
+
+      await ctx.stub.putState(degreeKey, Buffer.from(JSON.stringify(result)));
+    } else {
+      throw Error('Degree does not exists in blockchain');
+    }
   }
 
   // Smart contract for student
@@ -353,8 +480,8 @@ class StoreContract extends Contract {
     return studentState && studentState.length > 0;
   }
 
-  async ResultExistsByID(ctx, subjectMS, studentMS) {
-    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [subjectMS + '-' + studentMS]); // tạp key cho result
+  async ResultExistsByID(ctx, subjectMS, studentMS, ID) {
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [ID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     //check result of blockchain
     const resultState = await ctx.stub.getState(resultKey);
     return resultState && resultState.length > 0;
@@ -365,6 +492,19 @@ class StoreContract extends Contract {
     queryString.selector = {};
     queryString.selector.subjectMS = subjectMS;
     queryString.selector.studentMS = studentMS;
+    const result = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    if (result !== "[]") {
+      return true
+    }
+    return false
+  }
+
+  async DegreeExists(ctx, studentMS, major) {
+    let queryString = {};
+    queryString.selector = {};
+    queryString.selector.major = major;
+    queryString.selector.studentMS = studentMS;
+    queryString.selector.docType = 'degree';
     const result = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
     if (result !== "[]") {
       return true
@@ -398,18 +538,6 @@ class StoreContract extends Contract {
     return false;
   }
 
-  // async getAllResultByGroup(ctx, groupMa, date_awarded) {// get all result by group
-  //   let queryString = {};
-  //   queryString.selector = {};
-  //   queryString.selector.docType = "result";
-  //   queryString.selector.groupMa = groupMa;
-  //   queryString.selector.date_awarded = date_awarded;
-  //   return await this.GetQueryResultForQueryString(
-  //     ctx,
-  //     JSON.stringify(queryString),
-  //   ); //shim.success(queryResults);
-  // }
-
   async CheckUserLedger(ctx, Email) {
     const userState = await ctx.stub.getState(Email);
 
@@ -417,30 +545,161 @@ class StoreContract extends Contract {
     // return JSON.stringify(userState);
   }
 
-  // // InitLedger creates sample assets in the ledger
-  async InitLedger(ctx) {
-    const teachers = [
-      {
-        teacherID: "6536259342e4293df7ec6342",
-        teacherEmail: "anhg1906001@gmail.com",
-        teacherMS: "G1906001",
-        teacherName: "Tuấn Anh",
-        teacherSex: "male",
-        teacherPass: "Pdabu3sODugxAll7U1KZVe09nU8Q1VXlsB3vZGVw7pzEamiw20pjC",
-      },
-    ];
+  // NFT
+  async Initialize(ctx, name, symbol) {// khởi tạo tên và biểu tượng của token 
 
-    for (const teacher of teachers) {
-      await this.CreateTeacher(
-        ctx,
-        teacher.teacherID,
-        teacher.teacherEmail,
-        teacher.teacherMS,
-        teacher.teacherName,
-        teacher.teacherSex,
-        teacher.teacherPass
-      );
+    // Check minter authorization - this sample assumes Org1 is the issuer with privilege to initialize contract (set the name and symbol)
+    const clientMSPID = ctx.clientIdentity.getMSPID();
+    if (clientMSPID !== 'Org1MSP') {
+      throw new Error('client is not authorized to set the name and symbol of the token');
     }
+
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'admin')) {// kiểm tra quyền admin trước khi tạo
+      throw new Error('Not have access');
+    }
+
+    // Check contract options are not already set, client is not authorized to change them once intitialized
+    const nameBytes = await ctx.stub.getState(nameKey);
+    if (nameBytes && nameBytes.length > 0) {
+      throw new Error('contract options are already set, client is not authorized to change them');
+    }
+
+    await ctx.stub.putState(nameKey, Buffer.from(name));
+    await ctx.stub.putState(symbolKey, Buffer.from(symbol));
+    return nameKey;
+  }
+  async MintWithTokenURI(ctx, tokenId, tokenURI, owner) { // tạo nft
+    await this.CheckInitialized(ctx);// kiểm tra hàm tạo tên và biểu tượng cho nft đã được khởi tạo hay chưa?
+
+    const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
+    if (clientMSPID !== 'Org1MSP') {
+      throw new Error('client is not authorized to mint new tokens');
+    }
+
+    let cid = new ClientIdentity(ctx.stub);// kiểm tra người dùng có role admin hay không?
+    if (!cid.assertAttributeValue('role', 'admin')) {
+      throw new Error('Not have access');
+    }
+    // Get ID of submitting client identity
+    // const minter = ctx.clientIdentity.getID();
+    // Check if the token to be minted does not exist
+    const exists = await this._nftExists(ctx, tokenId);
+    if (exists) {
+      throw new Error(`The token ${tokenId} is already minted.`);
+    }
+    const nft = {   //create nft for degree
+      tokenId: tokenId,
+      owner: owner,
+      tokenURI: tokenURI
+    };
+
+    const nftKey = ctx.stub.createCompositeKey(nftPrefix, [tokenId]);
+    await ctx.stub.putState(nftKey, Buffer.from(JSON.stringify(nft)));
+
+    // 2 chức năng không cần thiết khi tạo nft cho bằng cấp: phát sự kiện lên mạng và tạo 1 balanceKey để tính số ntf mà cid sở hữu
+  }
+
+  async TotalSupply(ctx) { // hàm tính tổng số nft được tạo ra
+    // Check contract options are already set first to execute the function
+    await this.CheckInitialized(ctx);
+
+    // There is a key record for every non-fungible token in the format of nftPrefix.tokenId.
+    // TotalSupply() queries for and counts all records matching nftPrefix.*
+    const iterator = await ctx.stub.getStateByPartialCompositeKey(nftPrefix, []);
+
+    // Count the number of returned composite keys
+    let totalSupply = 0;
+    let result = await iterator.next();
+    while (!result.done) {
+      totalSupply++;
+      result = await iterator.next();
+    }
+    return totalSupply;
+  }
+
+  async Name(ctx) {
+    await this.CheckInitialized(ctx);
+
+    const nameAsBytes = await ctx.stub.getState(nameKey);
+
+    if (nameAsBytes && nameAsBytes.length > 0) {
+      return nameAsBytes.toString();
+    } else {
+      throw new Error("Can't get Name");
+    }
+  }
+
+  async Symbol(ctx) {
+    await this.CheckInitialized(ctx);
+
+    const symbolAsBytes = await ctx.stub.getState(symbolKey);
+    if (symbolAsBytes && symbolAsBytes.length > 0) {
+      return (symbolAsBytes.toString("utf8"));
+    } else {
+      throw new Error("Can't get Symbol");
+    }
+
+  }
+
+  async _readNFT(ctx, tokenId) {
+    const nftKey = ctx.stub.createCompositeKey(nftPrefix, [tokenId]);
+    const nftBytes = await ctx.stub.getState(nftKey);
+    if (!nftBytes || nftBytes.length === 0) {
+      throw new Error(`The tokenId ${tokenId} is invalid. It does not exist`);
+    }
+    const nft = JSON.parse(nftBytes.toString());
+    return nft;
+  }
+
+  async _nftExists(ctx, tokenId) {
+    const nftKey = ctx.stub.createCompositeKey(nftPrefix, [tokenId]);
+    const nftBytes = await ctx.stub.getState(nftKey);
+    return nftBytes && nftBytes.length > 0;
+  }
+
+  // Checks that contract options have been already initialized
+  async CheckInitialized(ctx) {
+    const nameBytes = await ctx.stub.getState(nameKey);
+    if (!nameBytes || nameBytes.length === 0) {
+      throw new Error('contract options need to be set before calling any function, call Initialize() to initialize contract');
+    }
+  }
+
+  async Burn(ctx, tokenId) {
+
+    await this.CheckInitialized(ctx);
+
+    // Check minter authorization - this sample assumes Org1 is the issuer with privilege to initialize contract (set the name and symbol)
+    const clientMSPID = ctx.clientIdentity.getMSPID();
+    if (clientMSPID !== 'Org1MSP') {
+      throw new Error('client is not authorized to set the name and symbol of the token');
+    }
+
+    // const owner = ctx.clientIdentity.getID();
+
+    // Check if a caller is the owner of the non-fungible token
+    // const nft = await this._readNFT(ctx, tokenId);
+    // if (nft.owner !== owner) {
+    //   throw new Error(`NFT ${tokenId} không được sở hữu bởi ${owner}`);
+    // }
+
+    let cid = new ClientIdentity(ctx.stub);// kiểm tra người dùng có role admin hay không?
+    if (!cid.assertAttributeValue('role', 'admin')) {
+      throw new Error('Không có quyền tương tác với token này!!!');
+    }
+
+    // Delete the token
+    const nftKey = ctx.stub.createCompositeKey(nftPrefix, [tokenId]);
+    await ctx.stub.deleteState(nftKey);
+
+    // const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [owner, tokenId]);
+    // await ctx.stub.deleteState(balanceKey);
+    // const tokenIdInt = parseInt(tokenId);
+    // const transferEvent = { from: owner, to: '0x0', tokenId: tokenIdInt };
+    // ctx.stub.setEvent('Transfer', Buffer.from(JSON.stringify(transferEvent)));
+
+    return true;
   }
 }
 module.exports = StoreContract;
