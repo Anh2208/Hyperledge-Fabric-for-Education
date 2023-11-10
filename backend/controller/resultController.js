@@ -39,6 +39,12 @@ export const createResultBlock = async (req, res) => {
   const user = await getUserFromToken(token);
   console.log("user in create is", user.email);
   try {
+
+    if (req.body.data.score > 10 || req.body.data.score < 0) {
+      res.status(400).json({ success: false, message: 'Điểm không hợp lệ!!!' });
+      return;
+    }
+
     //connect to hyperledger fabric network and contract
     const wallet = await buildWallet(Wallets, walletPath);
     const gateway = new Gateway();
@@ -200,7 +206,6 @@ export const getResultHistory = async (req, res) => {
         { studentMS: req.body.studentMS },
       ],
     });
-
     if (results == '') {
       res.status(400).json({ success: false, message: "Sinh viên không học học phần này" });
       return;
@@ -226,7 +231,8 @@ export const getResultHistory = async (req, res) => {
           result.studentMS,
           result._id,
         );
-        console.log('duiaiiaiaia');
+        console.log("user email is", user.email);
+
         const jsoncompare = JSON.parse(resultJSON.toString());
         console.log("jsoncompare", jsoncompare);
         if (jsoncompare != '') {
@@ -238,7 +244,9 @@ export const getResultHistory = async (req, res) => {
         if (e.message.includes("result does exist in blockchain")) {
 
         } else {
+          console.log(e);
           res.status(400).json({ success: false, message: "Lỗi truy vấn lịch sử Blockchain" });
+          return;
         }
 
       }
@@ -567,6 +575,11 @@ export const updateResult = async (req, res) => {
   const token = req.cookies.UserToken;
   const user = await getUserFromToken(token);
   try {
+    console.log("Điểm is", req.body.data.score);
+    if (req.body.data.score > 10 || req.body.data.score < 0) {
+      res.status(400).json({ success: false, message: 'Điểm không hợp lệ!!!' });
+      return;
+    }
     // check data
     const resultStudent = await Result.findById(id);
     const check = await compareResult(id);
@@ -845,7 +858,8 @@ export const checkResult = async (req, res) => {
     const token = req.cookies.UserToken;
     const user = await getUserFromToken(token);
     const teacher = await Teacher.findById(user.id);
-    if (teacher != undefined) {
+    const student = await Student.findById(user.id);
+    if (teacher != undefined || student != undefined) {
       await gateway.connect(cppUser, {
         wallet,
         identity: String(userId),
@@ -906,8 +920,8 @@ export const checkResult = async (req, res) => {
       return;
     }
     let err = '';
-    if (e.message.includes("Kết quả không tồn tại")) {
-      err = "Kết quả không tồn tại";
+    if (e.message.includes("Identity not found in wallet")) {
+      err = "Không có quyền kiểm tra và in điểm";
     } else {
       err = e
     }

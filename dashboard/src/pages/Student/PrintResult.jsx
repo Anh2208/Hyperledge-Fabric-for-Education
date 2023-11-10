@@ -124,6 +124,9 @@ const PrintResult = () => {
                     }
 
                 } catch (err) {
+                    if (err.response.data.message.includes('Không có quyền kiểm tra và in điểm')) {
+                        throw new Error("Không có quyền kiểm tra và in điểm!!");
+                    }
                     console.log(err);
                     // if (result.score && err.message.includes("Kết quả không tồn tại")) {
                     //     console.log("result.score", result.score);

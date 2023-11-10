@@ -65,6 +65,9 @@ const ResultExport = () => {
               setHasPermissionError(true);
               checkhasPermissionError = true;
             }
+            if (err.response.data.message == 'Không có quyền kiểm tra và in điểm') {
+              throw new Error("Không có quyền kiểm tra và in điểm!!");
+            }
             return ({ ...result, confirm: false });
           }
         }));

@@ -10,7 +10,8 @@ import subjectRoute from "./routes/subject.js";
 import resultRoute from "./routes/result.js";
 import adminRoute from "./routes/admin.js";
 import groupRoute from "./routes/group.js";
-import degreeRoute from "./routes/degree.js"
+import degreeRoute from "./routes/degree.js";
+import VerifyRoute from "./routes/verify.js";
 
 //blokchain action
 // import loadNetwork from "./loaders/fabric-loader.js"
@@ -46,8 +47,8 @@ const connect = async () => {
 // });
 
 //middleware
-app.use(express.json({ limit: '50mb' })); // Bỏ sót dấu `)`
-app.use(bodyParser.json({ limit: '50mb' })); // Bỏ sót dấu `)`
+app.use(express.json({ limit: '50mb' }));
+app.use(bodyParser.json({ limit: '50mb' }));
 // app.use(express.json());
 // app.use(cors());
 app.use(cors({
@@ -63,14 +64,18 @@ app.use("/result", resultRoute);
 app.use("/admin", adminRoute);
 app.use("/group", groupRoute);
 app.use("/degree", degreeRoute);
+app.use('/verify', VerifyRoute);
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 100000 }));
 
 // loadNetwork("Org1MSP");
 await fabric_initial_system("Org1MSP");
 await create_user("appUser", 'admin');
+await create_user("rector@gmail.com", 'rector');
 await create_user("anhvh1412@gmail.com", 'admin');
+await create_user("anhg1906001@gmail.com", "teacher"); // create teacher
+// create NFT smart contract
 await InitializeNFT();
-// // testConnect();
+// testConnect();
 
 app.listen(port, () => {
   connect();

@@ -1,4 +1,4 @@
-import { FaAddressCard, FaHouse, FaLayerGroup, FaBook, FaRegCalendarCheck, FaGraduationCap, FaIdBadge } from "react-icons/fa6";
+import { FaAddressCard, FaHouse, FaLayerGroup, FaBook, FaRegCalendarCheck, FaGraduationCap, FaIdBadge, FaClipboardList } from "react-icons/fa6";
 import { NavLink } from "react-router-dom";
 import './sidebar.css'
 import React, { useState, useEffect } from "react";
@@ -33,6 +33,11 @@ const sidebarLinks = [
     name: "Kết quả học tập",
     href: "/student",
     icon: FaIdBadge,
+  },
+  {
+    name: "Danh sách cấp bằng",
+    href: "/verify",
+    icon: FaClipboardList,
   },
   {
     name: "Bằng cấp",

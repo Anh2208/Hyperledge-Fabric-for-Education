@@ -26,6 +26,8 @@ import DegreeCreate from '../pages/Degree/DegreeCreate'
 import DegreeVerify from '../pages/Degree/DegreeVerify'
 import DegreeResult from '../pages/Degree/DegreeResult'
 import DegreeUpdate from '../pages/Degree/DegreeUpdate'
+import VerifyListComponent from '../pages/VerifyList/VerifyListComponent'
+import VerifyListManage from '../pages/VerifyList/VerifyListManage'
 
 const Router = () => {
     return (
@@ -64,6 +66,8 @@ const Router = () => {
                                         <Route path='/student/result/check' element={<CheckResult />} />
                                         <Route path='/student/semester/:id' element={<Semester />} />
                                         <Route path='/student/semester/print/:id' element={<PrintResult />} />
+                                        <Route path='/verify' element={<VerifyListComponent />} />
+                                        <Route path='/verify/management' element={<VerifyListManage />} />
                                         <Route path='/degree' element={<DegreeComponent />} />
                                         <Route path='/degree/create' element={<DegreeCreate />} />
                                         <Route path='/degree/update' element={<DegreeUpdate />} />

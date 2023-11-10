@@ -105,9 +105,9 @@ const StudentResult = () => {
         <>
             <section className="px-5 xl:px-0 container pt-5">
                 <div className="max-w-[1170px] mx-auto rounded border-2 border-black">
-                    <div className="flex flex-row gap-5 m-5">
+                    <div className="flex justify-between gap-5 m-5">
                         <div className='p-1 rounded-md border-2 border-black'>
-                            <Link to={"/teacher"} className="flex justify-between">
+                            <Link to={"/student"} className="flex justify-between">
                                 <span className='items-center gap-3 rounded-md px-1 py-2'>
                                     <FaArrowRotateLeft />
                                 </span>
@@ -117,7 +117,7 @@ const StudentResult = () => {
                             </Link>
                         </div>
                         <div className=' bg-cyan-200 rounded-md'>
-                            <Link to="/">
+                            <Link to="/student/result/detail">
                                 <button className="bg-primaryColor py-2 px-6 text-white font-[600] h-[44px] flex items-center rounded-md">
                                     Export Điểm
                                 </button>
@@ -191,38 +191,6 @@ const StudentResult = () => {
                                 </table>
                             </div>
                         ))}
-                        {/* {Object.keys(filteredResults).map((yearSemester, index) => {
-                            const [year, semester] = yearSemester.split("-");
-                            return (
-                                <div className='mb-5' key={index}>
-                                    <h6 className='border mx-auto py-0.5'>Năm học: {year}, Học kỳ: {semester}</h6>
-                                    <table className='border table-score my-0 mx-auto'>
-                                        <thead>
-                                            <tr>
-                                                <th>STT</th>
-                                                <th>Mã HP</th>
-                                                <th>Tên HP</th>
-                                                <th>Tín chỉ</th>
-                                                <th>Điểm chữ</th>
-                                                <th>Điểm số</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {filteredResults[yearSemester].map((item, i) => (
-                                                <tr key={i}>
-                                                    <td>{i + 1}</td>
-                                                    <td>{item.subjectMS}</td>
-                                                    <td>{item.subjectTen}</td>
-                                                    <td>{item.subjectSotc}</td>
-                                                    <td>{item.score}</td>
-                                                    <td>Rỗng</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            );
-                        })} */}
                     </div>
                 </div>
             </section>

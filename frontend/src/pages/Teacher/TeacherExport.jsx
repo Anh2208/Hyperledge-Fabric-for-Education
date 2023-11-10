@@ -21,6 +21,7 @@ const TeacherExport = () => {
     const { data: couserTable, loading, error } = useAxios(course);
     const [courses, setCourses] = useState([couserTable.results]);
     const componentRef = React.useRef();
+    const [hasPermissionError, setHasPermissionError] = useState(false);
 
     console.log("courses is ", courses);
 
@@ -34,6 +35,7 @@ const TeacherExport = () => {
 
     const handleClickCheck = async (e) => {
         setIsConfirm(true);
+        let checkhasPermissionError = false;
         const hasResultWithoutScore = courses.some((result) => {
             return typeof result.score !== 'number' || isNaN(result.score);
         });
@@ -50,35 +52,22 @@ const TeacherExport = () => {
         } else {
             try {
                 const updatedCourses = await Promise.all(couserTable.results.map(async (result) => {
-                    // try {
-                    //     const axiosInstance = axios.create({
-                    //         withCredentials: true,
-                    //     });
-
-                    //     const response = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${result._id}`);
-                    //     const isConfirmed = response.data.result;
-
-                    //     return { ...result, confirm: isConfirmed };
-                    // } catch (error) {
-                    //     return { ...result, confirm: false };
-                    // }
                     try {
                         const axiosInstance = axios.create({
                             withCredentials: true,
-                        })
-                        const response = await axiosInstance.post(`${BASE_URL}result/check/confirmResult/${result._id}`);
+                        });
+
+                        const response = await axiosInstance.post(`${BASE_URL}result/check/checkResult/${result._id}`);
                         const isConfirmed = response.data.result;
-                        console.log("isConfirmed", isConfirmed);
-                        if (isConfirmed == undefined) {
-                            return ({ ...result, confirm: true });
-                        } else {
-                            return ({ ...result, confirm: isConfirmed });
-                        }
+
+                        return { ...result, confirm: isConfirmed };
                     } catch (err) {
-                        console.log("erro js", err);
+                        if (err.response.data.message === "Kết quả không tồn tại") {
+                            setHasPermissionError(true);
+                            checkhasPermissionError = true;
+                        }
                         return ({ ...result, confirm: false });
                     }
-
                 }));
 
                 const isConfirmed = updatedCourses.every((result) => result.confirm);
@@ -87,7 +76,12 @@ const TeacherExport = () => {
                 setCheck(isConfirmed);
                 setIsConfirm(false);
 
-                if (isConfirmed) {
+                if (checkhasPermissionError) {
+                    // Ném lỗi "Không có quyền truy vấn lịch sử!!" ra ngoài
+                    throw new Error("Kết quả không tồn tại trong blockchain");
+                    // throw new "ddasdsdasdads";
+                }
+                else if (isConfirmed) {
                     toast.success("Xác thực dữ liệu thành công!!!");
                 } else {
                     toast.error("Một trong các kết quả có dữ liệu không đồng bộ", {
@@ -97,9 +91,15 @@ const TeacherExport = () => {
                         }
                     });
                 }
-            } catch (error) {
+            } catch (err) {
                 // Xử lý lỗi tổng quan ở đây nếu cần thiết
-                console.error(error);
+                console.log(err);
+                toast.error(err.message, {
+                    autoClose: 2000,
+                    style: {
+                        background: 'red',
+                    }
+                });
                 setIsConfirm(false);
             }
         }

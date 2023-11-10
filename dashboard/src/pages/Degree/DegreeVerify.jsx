@@ -241,13 +241,24 @@ const DegreeVerify = () => {
                     });
                 }
             } catch (err) {
-                console.log("lỗi kiểm tra kết quả", err);
-                toast.error(err.message, {
-                    autoClose: 2000,
-                    style: {
-                        background: 'red',
-                    }
-                });
+                if (err.response.data.message.includes('Không có quyền kiểm tra và in điểm')) {
+                    console.log("lỗi kiểm tra kết quả", err);
+                    toast.error("Lỗi kiểm tra: Không có quyền kiểm tra và in điểm!!!", {
+                        autoClose: 2000,
+                        style: {
+                            background: 'red',
+                        }
+                    });
+                }
+                else {
+                    console.log("lỗi kiểm tra kết quả", err);
+                    toast.error(err.message, {
+                        autoClose: 2000,
+                        style: {
+                            background: 'red',
+                        }
+                    });
+                }
             }
         }
         setIsConfirm(false);
@@ -303,13 +314,6 @@ const DegreeVerify = () => {
         return new Date(dateString).toLocaleDateString('vi-VN', options);
     }
 
-    const handleChange = (e) => {
-        const file = e.target.files[0]; // Lấy tệp ảnh đầu tiên trong danh sách tệp đã chọn
-        if (file) {
-            setImage(file);
-        }
-    };
-
     function convertToBase64(e) {
         const file = e.target.files[0]; // Lấy tệp ảnh đầu tiên trong danh sách tệp đã chọn
         if (file) {
@@ -323,8 +327,7 @@ const DegreeVerify = () => {
         }
     }
 
-
-    console.log("file image is", image);
+    // console.log("file image is", image);
     return (
         <>
             <ToastContainer
@@ -633,7 +636,7 @@ const DegreeVerify = () => {
                                             </button>
                                         </>
                                     ) : (
-                                        null
+                                        <LoadingSpinner />
                                     )}
                                 </div>
                             </div>

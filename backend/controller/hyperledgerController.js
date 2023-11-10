@@ -44,7 +44,6 @@ export const fabric_initial_system = async (mspOrg1) => {
 
     console.log("Create fabric-initial-system successfully!!!");
 
-    create_user("anhg1906001@gmail.com", "teacher"); // create teacher
   } catch (error) {
     console.error(`Failed to load network : ${error}`);
   }

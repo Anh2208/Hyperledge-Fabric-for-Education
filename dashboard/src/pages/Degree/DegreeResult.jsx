@@ -24,7 +24,11 @@ const DegreeResult = () => {
             });
 
             setDegree(response.data.data);
+            console.log("response.data.data.image is", response.data.data.image);
             const adjustedImage = response.data.data.image.replace('data', 'data:').replace('base64', ';base64,');
+            // const adjustedImage = `data:image/jpg;base64,${btoa(response.data.data.image)}`;
+            console.log("adjustedImage is", adjustedImage);
+
             setImage(adjustedImage);
             toast.success("Xác thực dữ liệu thành công!!!");
         } catch (err) {
@@ -48,7 +52,7 @@ const DegreeResult = () => {
         const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
         return new Date(dateString).toLocaleDateString('vi-VN', options);
     }
-    console.log("Degree is", degree);
+    // console.log("Degree is", image);
     return (
         <>
             <ToastContainer
@@ -98,8 +102,9 @@ const DegreeResult = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-5 p-2 gap-5 card mb-4 h-[460px]">
                     <div className='col-span-3 hover14 column'>
                         {image && (
-                            <div>
-                                <figure><img src={`data:${image}`} alt="Bằng cấp" className='rounded-lg shadow-2xl' /></figure>
+                            <div className='flex justify-center'>
+                                <figure><img src={`${image}`} alt="Bằng cấp" className='rounded-lg shadow-2xl h-[470px]' /></figure>
+                                {/* <figure><img src={`data:${image}`} alt="Bằng cấp" className='rounded-lg shadow-2xl h-[470px]' /></figure> */}
                             </div>
                         )}
                     </div>

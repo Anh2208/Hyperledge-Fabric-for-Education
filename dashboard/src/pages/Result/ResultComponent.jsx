@@ -29,7 +29,7 @@ const ResultComponent = () => {
                 setListedCourse(response.data.data[0].groupTen);
                 setCourseTableID(response.data.data[0]._id);
             }
-            console.log("courses is", response.data.data);
+            // console.log("courses is", response.data.data);
 
         } catch (err) {
             console.log("Lỗi dữ liệu");
@@ -54,7 +54,7 @@ const ResultComponent = () => {
         const currentTable = courses.find(course => course.groupTen === selectedCourse);
         setCourseTableID(currentTable._id);
     }
-    console.log("setCourseTableID is", courseTableID);
+    // console.log("setCourseTableID is", courseTableID);
 
     // Cập nhật điểm sinh viên
     const [isEditing, setIsEditing] = useState(false);
@@ -130,12 +130,22 @@ const ResultComponent = () => {
             setIsEditing(false);
         } catch (err) {
             // console.log("loi la ", err.response.data.message);
-            toast.error(err.response.data.message, {
-                autoClose: 2000,
-                style: {
-                    backgroundColor: 'red'
-                }
-            });
+            if (err.response.data.message.includes('Identity not found in wallet')) {
+                toast.error("Chưa được cấp hoặc không có quyền cập nhật điểm!!", {
+                    autoClose: 2000,
+                    style: {
+                        backgroundColor: 'red'
+                    }
+                });
+            }
+            else {
+                toast.error(err.response.data.message, {
+                    autoClose: 2000,
+                    style: {
+                        backgroundColor: 'red'
+                    }
+                });
+            }
             setCourses(courses);
             setEditedScores({});
         } finally {

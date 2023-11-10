@@ -212,7 +212,9 @@ export const getDegreeImage = async (req, res) => {
         if (e.message.includes("Kết quả bằng cấp không tồn tại!!!")) {
             err = "Sai mã số hoặc kết quả không tồn tại";
         } else if (e.message.includes("is invalid. It does not exist")) {
-            err = 'Sai mã hoặc bằng cấp không tồn tại'
+            err = 'Sai mã hoặc bằng cấp không tồn tại';
+        } else if (e.message.includes("Identity not found in wallet")) {
+            err = 'Không có quyền truy cập vào blockchain';
         } else {
             err = e;
         }
@@ -258,6 +260,7 @@ export const updateDegree = async (req, res) => {
     const base64Image = req.body.image;
     let classification = ''
 
+    console.log("Error creating degree on the ledger111");
     //  Lấy dữ liệu và đẩy lên ipfs server
     const tempFileName = "temp_image.png";
     fs.writeFileSync(tempFileName, Buffer.from(base64Image, 'base64'));
@@ -272,19 +275,19 @@ export const updateDegree = async (req, res) => {
     const token = req.cookies.UserToken;
     const user = await getUserFromToken(token);
 
-    //connect to hyperledger fabric network and contract
-    const wallet = await buildWallet(Wallets, walletPath);
-    const gateway = new Gateway();
-
-    await gateway.connect(cppUser, {
-        wallet,
-        identity: String(user.email),
-        discovery: { enabled: true, asLocalhost: true },
-    });
-    const network = await gateway.getNetwork(channelName);
-    const contract = network.getContract(chaincodeName);
 
     try {
+        //connect to hyperledger fabric network and contract
+        const wallet = await buildWallet(Wallets, walletPath);
+        const gateway = new Gateway();
+
+        await gateway.connect(cppUser, {
+            wallet,
+            identity: String(user.email),
+            discovery: { enabled: true, asLocalhost: true },
+        });
+        const network = await gateway.getNetwork(channelName);
+        const contract = network.getContract(chaincodeName);
         const exist = await contract.evaluateTransaction('DegreeExists', degree.studentMS, degree.major);
         if (exist.toString() == false) {
             res.status(400).json({ success: false, message: "Lỗi: Bằng cấp cần cập nhật không tồn tại trong Blockchain" });
@@ -373,20 +376,17 @@ export const updateDegree = async (req, res) => {
                 data: saveDegree,
             });
     } catch (e) {
-        console.log("Error creating degree on the ledger", e);
-        await session.abortTransaction();
-        session.endSession();
-        gateway.disconnect();
-        let err = '';
-        if (e.message.includes("Degree exists in blockchain")) {
-            err = "Lỗi cấp bằng, đã tồn tại trong blockchain";
-        } else if (e.message.includes("Not have access")) {
-            err = "Lỗi cấp bằng, không được cấp quyền";
-        } else {
-            err = e;
+        console.log("Error creating degree on the ledger");
+        if (e.message.includes("Identity not found in wallet")) {
+            await session.abortTransaction();
+            session.endSession();
+            res.status(400).json({ success: false, message: "Không có quyền cập nhật bằng cấp" });
         }
-
-        res.status(400).json({ success: false, message: err });
+        else {
+            await session.abortTransaction();
+            session.endSession();
+            res.status(400).json({ success: false, message: e });
+        }
     }
 }
 

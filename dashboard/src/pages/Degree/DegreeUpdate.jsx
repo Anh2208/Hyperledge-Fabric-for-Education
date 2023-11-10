@@ -82,7 +82,7 @@ const DegreeUpdate = () => {
         const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
         return new Date(dateString).toLocaleDateString('vi-VN', options);
     }
-    console.log("Degree is", degree);
+    // console.log("Degree is", degree);
 
     const handleClick = async () => {
         setIsConfirm(true);
@@ -105,19 +105,29 @@ const DegreeUpdate = () => {
             });
             console.log("Response is", response);
             toast.success("Cấp bằng thành công!!!");
-            setShowModal(false);
+            setIsConfirm(false);
         } catch (e) {
             console.log("Loi is", e);
-            toast.error(`${e.response.data.message}`, {
-                autoClose: 2000,
-                style: {
-                    background: 'red',
-                }
-            });
+            if (e.response.data.message != undefined && e.response.data.message == 'Không có quyền cập nhật bằng cấp') {
+                toast.error(`Không có quyền cập nhật bằng cấp`, {
+                    autoClose: 2000,
+                    style: {
+                        background: 'red',
+                    }
+                });
+            } else {
+                toast.error(`${e}`, {
+                    autoClose: 2000,
+                    style: {
+                        background: 'red',
+                    }
+                });
+            }
             setIsConfirm(false);
         }
         setIsConfirm(false);
     }
+    // console.log("uasdsad", image);
     return (
         <>
             <ToastContainer
@@ -151,7 +161,7 @@ const DegreeUpdate = () => {
                             <input
                                 id="search"
                                 type="search"
-                                placeholder="Tìm kiếm..."
+                                placeholder="Mã bằng cấp cần tìm"
                                 autoFocus
                                 required
                                 value={mssv} // Gán giá trị từ state
@@ -164,17 +174,17 @@ const DegreeUpdate = () => {
                         {state && <LoadingSpinner />}
                     </div>
                 </div>
-                <div>
-
+                {degree != '' && (
                     <div>
                         <div className="py-16 px-4 md:px-6 2xl:px-0 flex justify-center items-center 2xl:mx-auto 2xl:container">
                             <div className="flex flex-col justify-start items-start w-full space-y-9">
                                 <div className="flex flex-col xl:flex-row justify-center xl:justify-between space-y-6 xl:space-y-0 xl:space-x-6 w-full">
                                     <div className="xl:w-4/5 flex flex-col sm:flex-row xl:flex-col justify-center items-center bg-gray-100 dark:bg-gray-800 py-7 sm:py-0 xl:py-10 px-10 xl:w-full">
                                         <div className="">
+                                            <img src={`d`} alt="" />
                                             {image && (
                                                 <div>
-                                                    <figure><img src={`data:${image}`} alt="Bằng cấp" className='rounded-lg shadow-2xl' /></figure>
+                                                    <figure><img src={`${image}`} alt="Bằng cấp" className='rounded-lg shadow-2xl' /></figure>
                                                 </div>
                                             )}
                                         </div>
@@ -268,37 +278,29 @@ const DegreeUpdate = () => {
                                         <div className="mt-2 flex-col">
                                             <div className="relative">
                                                 <label htmlFor="major">Chuyên ngành đào tạo</label><br />
-                                                <select
-                                                    id="major"
-                                                    required
-                                                    value={change.major}
-                                                    onChange={handleChange}
-                                                    className='rounded-lg border-separate border border-slate-400 p-2 mt-2'
-                                                >
-                                                    <option value="An toàn thông tin">An toàn thông tin</option>
-                                                    <option value="Công nghệ thông tin">Công nghệ thông tin</option>
-                                                    <option value="Hẹ thống thông tin">Hẹ thống thông tin</option>
-                                                    <option value="Khoa học máy tính">Khoa học máy tính</option>
-                                                    <option value="Kỹ thuật phần mềm">Kỹ thuật phần mềm</option>
-                                                    <option value="Mạng máy tính và truyền thông dữ liệu">Mạng máy tính và truyền thông dữ liệu</option>
-                                                    <option value="Truyền thông đa phương tiện">Truyền thông đa phương tiện</option>
-                                                </select>
+                                                <input className="border rounded border-gray-300 p-4 w-full text-base leading-4 placeholder-gray-600 text-gray-600" id='major' placeholder={degree.major} readOnly />
                                             </div>
 
                                         </div>
 
-                                        <button onClick={handleClick} className=" mt-8 border border-transparent hover:border-gray-300 dark:bg-white dark:hover:bg-gray-900 dark:text-gray-900 dark:hover:text-white dark:border-transparent bg-gray-900 hover:bg-white text-white hover:text-gray-900 flex justify-center items-center py-4 rounded w-full">
-                                            <div>
-                                                <p className="text-base leading-4">Cập nhật </p>
-                                            </div>
-                                        </button>
+                                        {!isConfirm ? (
+                                            <button onClick={handleClick} className=" mt-8 border border-transparent hover:border-gray-300 dark:bg-white dark:hover:bg-gray-900 dark:text-gray-900 dark:hover:text-white dark:border-transparent bg-gray-900 hover:bg-white text-white hover:text-gray-900 flex justify-center items-center py-4 rounded w-full">
+                                                <div>
+                                                    <p className="text-base leading-4">Cập nhật </p>
+                                                </div>
+                                            </button>
+                                        ) : (
+
+
+                                            < LoadingSpinner />
+                                        )}
+
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                </div>
+                )}
             </section>
         </>
     )

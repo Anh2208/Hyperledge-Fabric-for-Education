@@ -1,3 +1,15 @@
+:root {
+    --rad: .7rem;
+    --dur: .3s;
+    --color-dark: #2f2f2f;
+    --color-light: #fff;
+    --color-brand: #57bd84;
+    --font-fam: 'Lato', sans-serif;
+    /* --height: 3rem; */
+    --btn-width: 4rem;
+    --bez: cubic-bezier(0, 0, 0.43, 1.49);
+}
+
 button {
     font-weight: bold;
 }
@@ -47,4 +59,128 @@ h5 {
     background: rgb(0, 128, 239);
     border-radius: 10px 10px 0px 0px;
     text-align: center;
+}
+
+
+.form-degree {
+    position: relative;
+    width: 20rem;
+    background: var(--color-brand);
+    border-radius: var(--rad);
+}
+
+.form-degree input {
+    height: var(--height);
+    font-family: var(--font-fam);
+    border: 0;
+    color: var(--color-dark);
+    font-size: 1rem;
+    height: 2.5rem
+}
+
+.form-degree button {
+    height: var(--height);
+    font-family: var(--font-fam);
+    border: 0;
+    color: var(--color-dark);
+    font-size: 1rem;
+    height: 2.5rem
+}
+
+.form-degree input[type="search"] {
+    outline: 0;
+    width: 100%;
+    background: var(--color-light);
+    padding: 0 1.6rem;
+    border-radius: var(--rad);
+    appearance: none;
+    transition: all var(--dur) var(--bez);
+    transition-property: width, border-radius;
+    z-index: 1;
+    position: relative;
+}
+
+.form-degree button {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--btn-width);
+    font-weight: bold;
+    background: var(--color-brand);
+    border-radius: 0 var(--rad) var(--rad) 0;
+}
+
+.form-degree span {
+    /* display: none;
+    position: absolute;
+    top: 0;
+    right: 0; */
+    background-color: red;
+}
+
+
+.form-degree input:not(:placeholder-shown) {
+    border-radius: var(--rad) 0 0 var(--rad);
+    width: calc(100% - var(--btn-width));
+
+    +button {
+        display: block;
+    }
+}
+
+.form-degree label {
+    position: absolute;
+    clip: rect(1px, 1px, 1px, 1px);
+    padding: 0;
+    border: 0;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+}
+
+
+.degree_form h1 {
+    color: red;
+    font-weight: bold;
+    margin-left: 20px;
+    font-size: 30px;
+}
+
+.test-bg {
+    background-image: url(../../asset/images/background-degree.jpg) !important;
+    background-size: cover;
+    /* Kích thước nền sẽ phủ toàn bộ phần nền của phần tử .test-bg */
+    background-position: center;
+    /* Canh giữa hình nền */
+    background-repeat: no-repeat;
+    /* Không lặp lại hình nền */
+}
+
+.table-degree-search {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 90%;
+}
+
+.table-degree-search td {
+    gap: 4;
+    padding: 8px;
+}
+
+.title-semester {
+    width: 30% !important;
+    color: red;
+    justify-items: center;
+    justify-content: center;
+}
+
+.table-semester {
+    width: 30%;
+    background-color: rgb(109, 233, 255);
+}
+
+.table_export {
+    line-height: 2rem;
 }

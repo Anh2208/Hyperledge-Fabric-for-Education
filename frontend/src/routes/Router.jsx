@@ -13,6 +13,9 @@ import Protected from './Protected'
 import NotFound from "../pages/NotFound.jsx"
 import Header from "../components/Header/Header.jsx";
 import "../App.css"
+import StudentDegree from "../pages/Student/StudentDegree.jsx";
+import StudentDetails from "../pages/Student/StudentDetails.jsx";
+import StudentExport from "../pages/Student/StudentExport.jsx";
 const Router = () => {
   const { user } = useContext(AuthContext);
   // let isAuthenticated = false;
@@ -69,6 +72,27 @@ const Router = () => {
           element={
             <Protected user={user && user.role ? user.role : ''} role="Student">
               <StudentResult />
+            </Protected>
+          } />
+        <Route
+          path="/student/degree"
+          element={
+            <Protected user={user && user.role ? user.role : ''} role="Student">
+              <StudentDegree />
+            </Protected>
+          } />
+        <Route
+          path="/student/result/detail"
+          element={
+            <Protected user={user && user.role ? user.role : ''} role="Student">
+              <StudentDetails />
+            </Protected>
+          } />
+        <Route
+          path="/student/result/detail/export"
+          element={
+            <Protected user={user && user.role ? user.role : ''} role="Student">
+              <StudentExport />
             </Protected>
           } />
       </Route>

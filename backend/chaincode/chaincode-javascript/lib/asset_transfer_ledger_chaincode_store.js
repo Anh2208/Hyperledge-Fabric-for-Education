@@ -36,13 +36,13 @@ class StoreContract extends Contract {
     let CN = /\/CN=([^/]+)/.exec(x509Data);
     CN = CN[1].replace(/::$/, ''); // Bỏ dấu hai chấm (::) đằng sau "appUser"
 
-    const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
-    if (clientMSPID !== 'Org1MSP') {
-      throw new Error('client is not authorized to mint new tokens');
-    }
+    // const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
+    // if (clientMSPID !== 'Org1MSP') {
+    //   throw new Error('client is not authorized to mint new tokens');
+    // }
 
     let cid = new ClientIdentity(ctx.stub);
-    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin')) {
+    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not a valid User');
     }
     if (cid.assertAttributeValue('role', 'teacher')) {
@@ -85,7 +85,7 @@ class StoreContract extends Contract {
   async GetResultHistory(ctx, subjectMS, studentMS, ID) {
     let resultKey = ctx.stub.createCompositeKey('Result_CTU', [ID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     let cid = new ClientIdentity(ctx.stub);
-    if (!cid.assertAttributeValue('role', 'admin')) {
+    if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not a valid User');
     }
     const exists = await this.ResultExists(ctx, subjectMS, studentMS, ID);// kiểm tra kết quả trong world state
@@ -228,7 +228,7 @@ class StoreContract extends Contract {
 
     // kiểm tra role của người dùng
     let cid = new ClientIdentity(ctx.stub);
-    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin')) {
+    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not a valid User');
     }
     if (cid.assertAttributeValue('role', 'teacher')) {
@@ -294,7 +294,7 @@ class StoreContract extends Contract {
     let degreeKey = ctx.stub.createCompositeKey('Degree_CTU', [studentMS + '-' + major]);// tạp key cho result
 
     let cid = new ClientIdentity(ctx.stub);
-    if (!cid.assertAttributeValue('role', 'admin')) {
+    if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not have access');
     }
 
@@ -356,7 +356,7 @@ class StoreContract extends Contract {
     let degreeKey = ctx.stub.createCompositeKey('Degree_CTU', [studentMS + '-' + major]);// tạp key cho result
 
     let cid = new ClientIdentity(ctx.stub);
-    if (!cid.assertAttributeValue('role', 'admin')) {
+    if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not have access');
     }
 
@@ -378,8 +378,10 @@ class StoreContract extends Contract {
 
     const exists = await this.DegreeExists(ctx, studentMS, major);// kiểm tra degree tồn tại trong world state
     if (exists) {
-      await this.Burn(ctx, oldNFT);
-      await this.MintWithTokenURI(ctx, code, degreeKey, studentName);
+      if (code != oldNFT) {
+        await this.Burn(ctx, oldNFT);
+        await this.MintWithTokenURI(ctx, code, degreeKey, studentName);
+      }
 
       await ctx.stub.putState(degreeKey, Buffer.from(JSON.stringify(result)));
     } else {
@@ -545,6 +547,19 @@ class StoreContract extends Contract {
     // return JSON.stringify(userState);
   }
 
+  async CheckRector(ctx) {
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
+      throw new Error('Not a valid User');
+    } else if (!cid.assertAttributeValue('role', 'rector') && cid.assertAttributeValue('role', 'admin')) {
+      throw new Error('You do not have permission to perform this function');
+    } else if (cid.assertAttributeValue('role', 'rector')) {
+      return true;
+    } else {
+      throw new Error("Error checking rector identification in blockchain")
+    }
+  }
+
   // NFT
   async Initialize(ctx, name, symbol) {// khởi tạo tên và biểu tượng của token 
 
@@ -555,7 +570,7 @@ class StoreContract extends Contract {
     }
 
     let cid = new ClientIdentity(ctx.stub);
-    if (!cid.assertAttributeValue('role', 'admin')) {// kiểm tra quyền admin trước khi tạo
+    if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {// kiểm tra quyền admin trước khi tạo
       throw new Error('Not have access');
     }
 
@@ -578,7 +593,7 @@ class StoreContract extends Contract {
     }
 
     let cid = new ClientIdentity(ctx.stub);// kiểm tra người dùng có role admin hay không?
-    if (!cid.assertAttributeValue('role', 'admin')) {
+    if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not have access');
     }
     // Get ID of submitting client identity
@@ -685,7 +700,7 @@ class StoreContract extends Contract {
     // }
 
     let cid = new ClientIdentity(ctx.stub);// kiểm tra người dùng có role admin hay không?
-    if (!cid.assertAttributeValue('role', 'admin')) {
+    if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Không có quyền tương tác với token này!!!');
     }
 
