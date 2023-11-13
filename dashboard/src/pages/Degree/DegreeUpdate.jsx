@@ -40,8 +40,8 @@ const DegreeUpdate = () => {
             }
             setChange(updateInfor);
             setDegree(response.data.data);
-            const adjustedImage = response.data.data.image.replace('data', 'data:').replace('base64', ';base64,');
-            setImage(adjustedImage);
+            // const adjustedImage = response.data.data.image.replace('data', 'data:').replace('base64', ';base64,');
+            setImage(response.data.data.image);
             toast.success("Xác thực dữ liệu thành công!!!");
         } catch (err) {
             console.log(err);
@@ -70,7 +70,7 @@ const DegreeUpdate = () => {
         if (file) {
             const reader = new FileReader();
             reader.onload = () => {
-                console.log("tatatatatatata", reader.result);
+                console.log("tatatatatatata", reader.result.length);
                 setImage(reader.result);
             };
 
@@ -176,7 +176,7 @@ const DegreeUpdate = () => {
                 </div>
                 {degree != '' && (
                     <div>
-                        <div className="py-16 px-4 md:px-6 2xl:px-0 flex justify-center items-center 2xl:mx-auto 2xl:container">
+                        <div className="py-16 px-4 md:px-6 2xl:px-0 flex justify-center items-center 2xl:mx-auto ">
                             <div className="flex flex-col justify-start items-start w-full space-y-9">
                                 <div className="flex flex-col xl:flex-row justify-center xl:justify-between space-y-6 xl:space-y-0 xl:space-x-6 w-full">
                                     <div className="xl:w-4/5 flex flex-col sm:flex-row xl:flex-col justify-center items-center bg-gray-100 dark:bg-gray-800 py-7 sm:py-0 xl:py-10 px-10 xl:w-full">

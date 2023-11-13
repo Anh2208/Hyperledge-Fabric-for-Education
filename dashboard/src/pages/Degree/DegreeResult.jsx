@@ -29,7 +29,7 @@ const DegreeResult = () => {
             // const adjustedImage = `data:image/jpg;base64,${btoa(response.data.data.image)}`;
             console.log("adjustedImage is", adjustedImage);
 
-            setImage(adjustedImage);
+            setImage(response.data.data.image);
             toast.success("Xác thực dữ liệu thành công!!!");
         } catch (err) {
             console.log(err);
