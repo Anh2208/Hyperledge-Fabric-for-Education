@@ -25,8 +25,7 @@ const StudentDegree = () => {
             });
 
             setDegree(response.data.data);
-            const adjustedImage = response.data.data.image.replace('data', 'data:').replace('base64', ';base64,');
-            setImage(adjustedImage);
+            setImage(response.data.data.image);
             toast.success("Xác thực dữ liệu thành công!!!");
         } catch (err) {
             console.log(err);
