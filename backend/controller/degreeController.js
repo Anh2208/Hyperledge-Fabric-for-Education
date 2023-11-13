@@ -1,6 +1,3 @@
-import Result from "../models/Result.js";
-import Group from "../models/Group.js";
-import Subject from "../models/Subject.js";
 import mongoose from "mongoose";
 import { Wallets, Gateway } from "fabric-network";
 import { buildWallet, buildCCPOrg1 } from "../services/fabric/AppUtil.js";
@@ -10,9 +7,9 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import Student from "../models/Student.js";
-import Teacher from "../models/Teacher.js";
 import Degree from "../models/Degree.js";
+import { Web3Storage } from 'web3.storage';
+import { getFilesFromPath } from 'web3.storage';
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -23,12 +20,7 @@ const channelName = "mychannel";
 const chaincodeName = "ledger";
 const mspOrg1 = "Org1MSP";
 const cppUser = JSON.parse(fs.readFileSync(process.env.ccpPATH, "utf8"));
-// create result
-function prettyJSONString(inputString) {
-    return JSON.stringify(JSON.parse(inputString), null, 2);
-}
-import { Web3Storage } from 'web3.storage';
-import { getFilesFromPath } from 'web3.storage';
+
 
 export const createDegree = async (req, res) => {
     let degree = req.body;
@@ -36,8 +28,8 @@ export const createDegree = async (req, res) => {
     let classification = ''
 
     //  Lấy dữ liệu và đẩy lên ipfs server
-    const tempFileName = "temp_image.png";
-    fs.writeFileSync(tempFileName, Buffer.from(base64Image, 'base64'));
+    const tempFileName = "temp_image";
+    fs.writeFileSync(tempFileName, Buffer.from(base64Image));
     const client = new Web3Storage({ token: process.env.Web3Token });
     const files = await getFilesFromPath(tempFileName);
 
@@ -199,10 +191,8 @@ export const getDegreeImage = async (req, res) => {
             const imageData = await imageFile.arrayBuffer(); // Đọc dữ liệu của tệp hình ảnh
 
             // Chuyển dữ liệu tệp hình ảnh thành mã base64
-            const base64Image = Buffer.from(imageData).toString('base64');
+            let base64Image = Buffer.from(imageData).toString();
 
-            // Giờ bạn có thể sử dụng biến `base64Image` trong mã của bạn
-            // console.log("Base64 Image:", base64Image);
             jsoncompare.image = base64Image;
         }
         // console.log("degreee is", jsoncompare.image);
@@ -262,8 +252,12 @@ export const updateDegree = async (req, res) => {
 
     console.log("Error creating degree on the ledger111");
     //  Lấy dữ liệu và đẩy lên ipfs server
-    const tempFileName = "temp_image.png";
-    fs.writeFileSync(tempFileName, Buffer.from(base64Image, 'base64'));
+    const tempFileName = "temp_image";
+
+    fs.writeFileSync(tempFileName, Buffer.from(base64Image).toString());
+    // fs.writeFileSync(tempFileName, Buffer.from(base64Image, 'base64'));
+    // console.log("11111Buffer.from(base64Image, 'base64') được chuyển đổi:", Buffer.from(base64Image, 'base64').toString('base64'));
+
     const client = new Web3Storage({ token: process.env.Web3Token });
     const files = await getFilesFromPath(tempFileName);
 
@@ -274,7 +268,6 @@ export const updateDegree = async (req, res) => {
     // get identify
     const token = req.cookies.UserToken;
     const user = await getUserFromToken(token);
-
 
     try {
         //connect to hyperledger fabric network and contract
@@ -349,21 +342,7 @@ export const updateDegree = async (req, res) => {
                 inputbook: degree.inputbook,
                 image: degree.image,
             }
-        }, { new: true, session })
-        // const saveDegree = await Degree.create({
-        //     university: 'Đại học Cần Thơ',
-        //     degreeType: degree.degreeType,
-        //     major: degree.major,
-        //     studentMS: degree.studentMS,
-        //     studentName: degree.studentName,
-        //     studentDate: degree.studentDate,
-        //     score: degree.score,
-        //     classification: classification,
-        //     formOfTraining: degree.formOfTraining,
-        //     code: degree.code,
-        //     inputbook: degree.inputbook,
-        //     image: degree.image,
-        // });
+        }, { new: true, session });
 
         await session.commitTransaction();
         session.endSession();
