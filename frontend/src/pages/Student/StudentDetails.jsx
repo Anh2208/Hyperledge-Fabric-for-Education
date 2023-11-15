@@ -57,8 +57,9 @@ const StudentDetails = () => {
   }
 
   return (
-    <section className='content-main'>
-      <div className="content-header mb-0">
+    <section className='px-5 xl:px-0 container pt-5 '>
+      {/* <div className="content-header mb-0"> */}
+      <div className="max-w-[1170px] mx-auto rounded ">
         <div className="flex flex-row gap-5 m-5">
           <div className='p-1 rounded-md border-2 border-black'>
             <Link to={`/student/result`} className="flex justify-between">
