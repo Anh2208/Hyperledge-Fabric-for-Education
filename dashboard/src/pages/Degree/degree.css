@@ -82,6 +82,7 @@
     position: relative;
 }
 
+/* 
 .hover14 figure::before {
     position: absolute;
     top: 0;
@@ -100,7 +101,7 @@
 .hover14 figure:hover::before {
     -webkit-animation: shine .75s;
     animation: shine .75s;
-}
+} */
 
 @-webkit-keyframes shine {
     100% {
