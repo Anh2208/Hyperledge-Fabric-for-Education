@@ -177,9 +177,8 @@ class StoreContract extends Contract {
         if (isHistory && isHistory === true) {
           jsonRes.TxId = res.value.txId;
           jsonRes.Timestamp = new Date(res.value.timestamp.seconds * 1000); // Chuyển đổi giây sang mili giây
-          // jsonRes.TestValue = res.value;
           jsonRes.isDelete = res.value.isDelete;
-
+          // jsonRes.IsDelete = response.is_delete;
           try {
             jsonRes.Value = JSON.parse(res.value.value.toString("utf8"));
           } catch (err) {
@@ -265,13 +264,13 @@ class StoreContract extends Contract {
   }
 
   //Delete Result
-  async DeleteResult(ctx, resultID) {
-    const exists = await this.ResultExistsByID(ctx, resultID);
+  async DeleteResult(ctx, subjectMS, studentMS, resultID) {
+    const exists = await this.ResultExistsByID(ctx, subjectMS, studentMS, resultID);
     if (!exists) {
       throw new Error(`Kết quả ${resultID} không tồn tại`);
     }
-
-    await ctx.stub.deleteState(resultID);
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]);
+    await ctx.stub.deleteState(resultKey);
   }
 
   // create Degree

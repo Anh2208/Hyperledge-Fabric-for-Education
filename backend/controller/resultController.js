@@ -709,7 +709,7 @@ export const deleteResult = async (req, res) => {
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
 
-    await contract.submitTransaction("DeleteResult", resultID);
+    await contract.submitTransaction("DeleteResult", ResultDelete.subjectMS, ResultDelete.studentMS, resultID);
 
     gateway.disconnect();
 
