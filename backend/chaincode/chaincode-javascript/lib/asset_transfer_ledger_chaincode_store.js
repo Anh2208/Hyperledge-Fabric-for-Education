@@ -53,10 +53,10 @@ class StoreContract extends Contract {
         throw new Error('The grading deadline has expired');
       }
     }
-
+    let permissionGranted = [];
     let result = {
       docType: "result",
-      ID,
+      resultID: ID,
       groupMa,
       subjectMS,
       studentMS,
@@ -65,7 +65,8 @@ class StoreContract extends Contract {
       score,
       semester,
       date_awarded,
-      CN
+      CN,
+      permissionGranted,
     };
 
     const exists = await this.ResultExists(ctx, subjectMS, studentMS, ID);// kiểm tra kết quả trong world state
@@ -225,6 +226,8 @@ class StoreContract extends Contract {
     let CN = /\/CN=([^/]+)/.exec(x509Data);
     CN = CN[1].replace(/::$/, ''); // Bỏ dấu hai chấm (::) đằng sau "appUser"
 
+    const rs = await ctx.stub.getState(resultKey);
+    const rsmain = JSON.parse(rs.toString());
     // kiểm tra role của người dùng
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
@@ -234,7 +237,7 @@ class StoreContract extends Contract {
       const currentDate = new Date();
       const accessDate = new Date(access);
 
-      if (currentDate > accessDate) {
+      if (currentDate > accessDate && !rsmain.permissionGranted.includes(CN)) {
         throw new Error('The grading deadline has expired');
       }
     }
@@ -246,7 +249,7 @@ class StoreContract extends Contract {
     }
 
     let result = {
-      docType: "result",
+      docType: 'result',
       resultID,
       groupMa,
       subjectMS,
@@ -256,11 +259,61 @@ class StoreContract extends Contract {
       score,
       semester,
       date_awarded,
-      CN
+      CN,
+      permissionGranted: rsmain.permissionGranted,
     };
+
 
     await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(result)));
 
+  }
+
+  async grantAccessResult(ctx, resultID, subjectMS, studentMS, email) {
+
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
+      throw new Error('Not a valid User');
+    }
+    if (!cid.assertAttributeValue('role', 'rector')) {
+      throw new Error('You do not have permission to perform this function');
+    }
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
+    const rs = await ctx.stub.getState(resultKey);
+    let rsmain = JSON.parse(rs.toString());
+
+    if (!rsmain.permissionGranted.includes(email)) {
+      rsmain.permissionGranted.push(email);
+    } else {
+      throw new Error("MS does exists in permissionGranted");
+    }
+
+    await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(rsmain)));
+
+  }
+
+  async revokeAccessResult(ctx, resultID, subjectMS, studentMS, email) {
+    let cid = new ClientIdentity(ctx.stub);
+    if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
+      throw new Error('Not a valid User');
+    }
+    if (!cid.assertAttributeValue('role', 'rector')) {
+      throw new Error('You do not have permission to perform this function');
+    }
+
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
+    const rs = await ctx.stub.getState(resultKey);
+    let rsmain = JSON.parse(rs.toString());
+
+    if (!rsmain.permissionGranted.includes(email)) {
+      throw new Error("MS does not exists in permissionGranted");
+    } else if (rsmain.permissionGranted.includes(email)) {
+      rsmain.permissionGranted = rsmain.permissionGranted.filter(
+        (permission) => permission !== email
+      );
+    } else {
+      throw new Error("Error revokeAccessResult");
+    }
+    await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(rsmain)));
   }
 
   //Delete Result

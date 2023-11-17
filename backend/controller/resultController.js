@@ -12,6 +12,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import Student from "../models/Student.js";
 import Teacher from "../models/Teacher.js";
+import Admin from "../models/Admin.js";
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -389,6 +390,57 @@ export const getAllResult = async (req, res) => {
   }
 };
 
+export const getDetailGroup = async (req, res) => {
+
+  try {
+    const wallet = await buildWallet(Wallets, walletPath);
+    const gateway = new Gateway();
+
+    const token = req.cookies.UserToken;
+    const user = await getUserFromToken(token);
+    await gateway.connect(cppUser, {
+      wallet,
+      identity: String(user.email),
+      discovery: { enabled: true, asLocalhost: true },
+    });
+    const network = await gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
+
+
+    const result = await Result.findOne({
+      $and: [
+        { groupMa: req.body.groupMa },
+        { subjectMS: req.body.subjectMS },
+        { studentMS: req.body.studentMS },
+        { semester: req.body.semester },
+        { date_awarded: req.body.date_awarded },
+      ],
+    });
+    console.log("result", result);
+    if (result == null) {
+      res.status(400).json({ success: false, message: "Lỗi, kết quả không tồn tại" });
+      return;
+    }
+
+    let resultDetail = await contract.evaluateTransaction("getSingleResult", result.subjectMS, result.studentMS, result._id);
+
+    res.status(200).json({ success: true, message: "get result successfully", data: JSON.parse(resultDetail) });
+
+  } catch (e) {
+    console.log(e);
+    if (e.message.includes("Kết quả không tồn tại")) {
+      res.status(400).json({ success: false, message: "Chưa cần thêm quyền!!!" });
+      return;
+    }
+    if (e.message.includes("Identity not found in wallet")) {
+      res.status(400).json({ success: false, message: "Lỗi, không có quyền thực hiện chức năng này!!!" });
+      return;
+    }
+    res.status(400).json({ success: false, message: "Get detail group failed" });
+  }
+
+}
+
 export const getAllResultByID = async (req, res) => {
   const resultID = req.body.resultID;
 
@@ -601,7 +653,7 @@ export const updateResult = async (req, res) => {
     //update result in mongodb
     const updateResult = await Result.findByIdAndUpdate(id, { $set: req.body.data }, { new: true, session });
 
-    const saveResult = await Result.findById(updateResult);
+    await Result.findById(updateResult);
 
     //connect to hyperledger fabric network and contract
     const wallet = await buildWallet(Wallets, walletPath);
@@ -658,6 +710,96 @@ export const updateResult = async (req, res) => {
     res.status(400).json({ success: false, message: error });
   }
 };
+
+export const grantAccessResult = async (req, res) => {// cập nhật quyền chỉnh sửa điểm của giảng viên
+
+  const token = req.cookies.UserToken;
+  const user = await getUserFromToken(token);
+
+  const teacher = await Teacher.findOne({ email: req.body.email });
+  const admin = await Admin.findOne({ email: req.body.email });
+
+  try {
+
+    if (teacher == null && admin == null) {
+      res.status(400).json({ success: false, message: "Lỗi, Email Quản trị viên hoặc Giảng viên không tồn tại" });
+      return;
+    }
+
+    //connect to hyperledger fabric network and contract
+    const wallet = await buildWallet(Wallets, walletPath);
+    const gateway = new Gateway();
+
+    await gateway.connect(cppUser, {
+      wallet,
+      identity: String(user.email),
+      discovery: { enabled: true, asLocalhost: true },
+    });
+    const network = await gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
+    await contract.submitTransaction('grantAccessResult', req.body.resultID, req.body.subjectMS, req.body.studentMS, req.body.email);
+
+    gateway.disconnect();
+
+    res.status(200).json({ success: true, message: "Thêm danh tính thành viên chỉnh sửa điểm thành công" });
+
+  } catch (e) {
+    let err = '';
+    if (e.message.includes("Not a valid User")) {
+      err = "Người dùng không thuộc hệ thống";
+    } else if (e.message.includes("You do not have permission to perform this function")) {
+      err = 'Lỗi, không có quyền thực hiện chức năng này';
+    } else if (e.message.includes("MS does exists in permissionGranted")) {
+      err = 'Lỗi, mã số đã tồn tại trong danh sách';
+    } else {
+      err = e;
+    }
+    console.log("eeeee", e);
+    res.status(400).json({ success: false, message: err });
+  }
+
+}
+
+export const revokeAccessResult = async (req, res) => {// cập nhật quyền chỉnh sửa điểm của giảng viên
+
+  const token = req.cookies.UserToken;
+  const user = await getUserFromToken(token);
+  console.log(req.body);
+  try {
+
+    //connect to hyperledger fabric network and contract
+    const wallet = await buildWallet(Wallets, walletPath);
+    const gateway = new Gateway();
+
+    await gateway.connect(cppUser, {
+      wallet,
+      identity: String(user.email),
+      discovery: { enabled: true, asLocalhost: true },
+    });
+    const network = await gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
+    await contract.submitTransaction('revokeAccessResult', req.body.resultID, req.body.subjectMS, req.body.studentMS, req.body.email);
+
+    gateway.disconnect();
+
+    res.status(200).json({ success: true, message: "Thêm danh thành viên chỉnh sửa điểm thành công" });
+
+  } catch (e) {
+    let err = '';
+    if (e.message.includes("Not a valid User")) {
+      err = "Người dùng không thuộc hệ thống";
+    } else if (e.message.includes("You do not have permission to perform this function")) {
+      err = 'Lỗi, không có quyền thực hiện chức năng này';
+    } else if (e.message.includes("MS does not exists in permissionGranted")) {
+      err = 'Lỗi, mã số không tồn tại trong danh sách';
+    } else {
+      err = e;
+    }
+    console.log("eeeee", e);
+    res.status(400).json({ success: false, message: err });
+  }
+
+}
 
 export const updateResultData = async (req, res) => {
   const id = req.body.data._id;

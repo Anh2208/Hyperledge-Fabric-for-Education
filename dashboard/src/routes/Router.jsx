@@ -32,6 +32,7 @@ import NotFound from "../pages/NotFound.jsx"
 import Protected from './Protected'
 import { AuthContext } from '../context/AuthContext'
 import Header from '../components/Header/Header'
+import EditScore from '../pages/Student/EditScore.jsx'
 
 const Layout = ({ children }) => {
     return (
@@ -204,6 +205,13 @@ const Router = () => {
                                         element={
                                             <Protected user={user && user.role ? user.role : ''} role="admin">
                                                 <PrintResult />
+                                            </Protected>
+                                        } />
+                                    <Route
+                                        path="/student/editscore"
+                                        element={
+                                            <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                <EditScore />
                                             </Protected>
                                         } />
                                     <Route

@@ -18,7 +18,10 @@ import {
   updateResultData,
   confirmResult,
   getResultByStudentID,
-  checkResult
+  checkResult,
+  getDetailGroup,
+  grantAccessResult,
+  revokeAccessResult
 } from "../controller/resultController.js";
 
 const router = express.Router();
@@ -31,6 +34,12 @@ router.post("/check/confirmResult/:id", confirmResult);
 
 // check synchronized of result with current value 
 router.post("/check/checkResult/:id", checkResult);
+
+// grantAccessResult
+router.post("/access/grantAccessResult", grantAccessResult);
+
+// grantAccessResult
+router.post("/access/revokeAccessResult", revokeAccessResult);
 
 // create Result in Blockchain
 router.put("/ResultBlock/create", createResultBlock);
@@ -75,5 +84,9 @@ router.get("/search/mongodb/getResultByStudentID", getResultByStudentID);
 router.get("/search/mongodb/getResultByMSGV", getResultByMSGV);
 // search result by Group
 router.get("/search/mongodb/getResultByGroup", getResultByGroup);
+
+
+// search getDetailGroup
+router.post("/search/block/getDetailGroup", getDetailGroup);
 
 export default router;

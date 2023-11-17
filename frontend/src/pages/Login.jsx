@@ -48,14 +48,14 @@ const Login = () => {
       }
 
     } catch (err) {
-      console.log("loi r", err.response.data.message);
+      // console.log("loi r", err.response.data.message);
       toast.error(err.response.data.message, {
         autoClose: 2000,
         style: {
           background: 'red',
         }
       });
-      dispatch({ type: "LOGIN_FAILURE", payload: err.message });
+      // dispatch({ type: "LOGIN_FAILURE", payload: err.message });
     }
   }
   return (

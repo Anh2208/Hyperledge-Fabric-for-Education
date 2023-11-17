@@ -21,7 +21,12 @@ const StudentResult = () => {
     <section className='content-main'>
       <div className="content-header">
         <h2 className="content-title">Kết quả học tập</h2>
-        <div className=' bg-cyan-200 rounded-md'>
+        <div className='rounded-md flex flex-row gap-5'>
+          <Link to={`/student/editscore`}>
+            <button className="bg-primaryColor px-6 text-white font-[600] h-[44px] flex items-center rounded-md">
+              Quyền sửa điểm
+            </button>
+          </Link>
           <Link to={`/student/result/check`}>
             <button className="bg-primaryColor px-6 text-white font-[600] h-[44px] flex items-center rounded-md">
               Truy vấn điểm
