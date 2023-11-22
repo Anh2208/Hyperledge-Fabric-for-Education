@@ -10,6 +10,9 @@ This platform provides grades storage and degree management services for student
 # Software versions
 ![image](https://github.com/Anh2208/Hyperledge-Fabric-for-Education/assets/115959471/072839bf-5b22-4626-b4ae-041ac7db8413)
 
+# Steps to replicate locally
+awaiting update 😂
+
 # About the fabric private blockchain network
 ## Network and channel architecture
 ![image](https://github.com/Anh2208/Hyperledge-Fabric-for-Education/assets/115959471/2800f608-7dde-4b4c-8131-64871cec42c4)
