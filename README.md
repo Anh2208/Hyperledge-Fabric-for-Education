@@ -6,6 +6,7 @@ This platform provides grades storage and degree management services for student
 1. Hyperledger fabric 2.4
 2. NodeJS
 3. ReactJS
+4. Database: Mongodb, CouchDB
 # Software versions
 ![image](https://github.com/Anh2208/Hyperledge-Fabric-for-Education/assets/115959471/072839bf-5b22-4626-b4ae-041ac7db8413)
 
