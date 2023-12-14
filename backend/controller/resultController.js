@@ -242,8 +242,9 @@ export const getResultHistory = async (req, res) => {
           }
         }
       } catch (e) {
-        if (e.message.includes("result does exist in blockchain")) {
-
+        if (e.message.includes("result does not exist in blockchain")) {
+          res.status(400).json({ success: false, message: "Lỗi, học phần chưa được chấm điểm hoặc lỗi dữ liệu" });
+          return;
         } else {
           console.log(e);
           res.status(400).json({ success: false, message: "Lỗi truy vấn lịch sử Blockchain" });
@@ -626,12 +627,25 @@ export const updateResult = async (req, res) => {
 
   const token = req.cookies.UserToken;
   const user = await getUserFromToken(token);
+
   try {
-    console.log("Điểm is", req.body.data.score);
+    //connect to hyperledger fabric network and contract
+    const wallet = await buildWallet(Wallets, walletPath);
+    const gateway = new Gateway();
+
+    await gateway.connect(cppUser, {
+      wallet,
+      identity: String(user.email),
+      discovery: { enabled: true, asLocalhost: true },
+    });
+    const network = await gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
+
     if (req.body.data.score > 10 || req.body.data.score < 0) {
       res.status(400).json({ success: false, message: 'Điểm không hợp lệ!!!' });
       return;
     }
+
     // check data
     const resultStudent = await Result.findById(id);
     const check = await compareResult(id);
@@ -648,24 +662,13 @@ export const updateResult = async (req, res) => {
         success: false,
         message: check,
       });
+      return;
     }
 
     //update result in mongodb
     const updateResult = await Result.findByIdAndUpdate(id, { $set: req.body.data }, { new: true, session });
 
     await Result.findById(updateResult);
-
-    //connect to hyperledger fabric network and contract
-    const wallet = await buildWallet(Wallets, walletPath);
-    const gateway = new Gateway();
-
-    await gateway.connect(cppUser, {
-      wallet,
-      identity: String(user.email),
-      discovery: { enabled: true, asLocalhost: true },
-    });
-    const network = await gateway.getNetwork(channelName);
-    const contract = network.getContract(chaincodeName);
 
     // update result in blockchain
     await contract.submitTransaction(
@@ -805,7 +808,7 @@ export const updateResultData = async (req, res) => {
   const id = req.body.data._id;
   console.log("Result is : ", req.body.groupID)
   try {
-    const updateResult = await Result.findByIdAndUpdate(
+    await Result.findByIdAndUpdate(
       id,
       { $set: req.body.data },
       { new: true },
@@ -1089,14 +1092,12 @@ const compareResult = async (id) => {
     });
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
+
     let result = await contract.evaluateTransaction("getSingleResult", resultMongo.subjectMS, resultMongo.studentMS, id);
 
     // console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
     const resultBlock = JSON.parse(result.toString());
-
-    // console.log("resultBlock 1 ", resultBlock);
-    // console.log("resultMongo 2", resultMongo);
 
     // so sánh 2 bên dữ liệu
     const fieldsToCompare = [
@@ -1128,14 +1129,13 @@ const compareResult = async (id) => {
 
     let error = "";
     if (e.message.includes("Result exists in blockchain")) {
-      // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
       error = "Lỗi tạo điểm, kết quả đã tồn tại trong học kỳ này";
     } else if (e.message.includes("Not a valid User")) {
-      // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
-      error = "Không có quyền cập nhật điểm!!!";
+      error = "Không có quyền cập nhật điểm";
+    } else if (e.message.includes("Kết quả không tồn tại")) {
+      error = "Lỗi dữ liệu, không đồng bộ";
     } else if (e.message.includes("The grading deadline has expired")) {
-      // console.log("Lỗi tạo điểm, kết quả đã tồn tại trong Blockchain");
-      error = "Quá hạn ngày nhập điểm!!!";
+      error = "Quá hạn ngày nhập điểm";
     } else {
       error = e;
     }

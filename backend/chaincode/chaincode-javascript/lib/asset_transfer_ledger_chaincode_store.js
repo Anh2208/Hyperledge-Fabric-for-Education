@@ -14,7 +14,9 @@ const nameKey = 'name';
 const symbolKey = 'symbol';
 
 class StoreContract extends Contract {
-  // Contract for Result
+
+  // ***** Contract for Result student *****
+  // Tạo kết quả học tập
   async CreateResult(
     ctx,
     ID,
@@ -34,12 +36,12 @@ class StoreContract extends Contract {
     let userkey = ctx.clientIdentity.getID();
     let x509Data = userkey.split("x509::")[1];
     let CN = /\/CN=([^/]+)/.exec(x509Data);
-    CN = CN[1].replace(/::$/, ''); // Bỏ dấu hai chấm (::) đằng sau "appUser"
+    CN = CN[1].replace(/::$/, '');
 
-    // const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
-    // if (clientMSPID !== 'Org1MSP') {
-    //   throw new Error('client is not authorized to mint new tokens');
-    // }
+    const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
+    if (clientMSPID !== 'Org1MSP') {
+      throw new Error('Client is not part of the organization');
+    }
 
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
@@ -54,6 +56,7 @@ class StoreContract extends Contract {
       }
     }
     let permissionGranted = [];
+    let action = 'Create';// hành động của chức năng là update 
     let result = {
       docType: "result",
       resultID: ID,
@@ -67,9 +70,10 @@ class StoreContract extends Contract {
       date_awarded,
       CN,
       permissionGranted,
+      action
     };
 
-    const exists = await this.ResultExists(ctx, subjectMS, studentMS, ID);// kiểm tra kết quả trong world state
+    const exists = await this.ResultExists(ctx, subjectMS, studentMS);// kiểm tra kết quả trong world state
     if (!exists) {
       await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(result)));
     } else {
@@ -89,9 +93,9 @@ class StoreContract extends Contract {
     if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not a valid User');
     }
-    const exists = await this.ResultExists(ctx, subjectMS, studentMS, ID);// kiểm tra kết quả trong world state
+    const exists = await this.ResultExists(ctx, subjectMS, studentMS);// kiểm tra kết quả trong world state
     if (!exists) {
-      throw new Error('result does exist in blockchain')
+      throw new Error('result does not exist in blockchain')
     }
     let resultsIterator = await ctx.stub.getHistoryForKey(resultKey);
     let results = await this._GetAllResults(ctx, resultsIterator, true);
@@ -128,7 +132,7 @@ class StoreContract extends Contract {
   }
 
   async getSingleResult(ctx, subjectMS, studentMS, resultID) {// get all result by resultID
-    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
+    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạo key cho result
     const resultState = await ctx.stub.getState(resultKey);
     if (resultState && resultState.length > 0) {
       return JSON.parse(resultState.toString("utf8"));
@@ -220,14 +224,22 @@ class StoreContract extends Contract {
     access
   ) {
     let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
+
     // lấy thông tin người tạo transaction
     let userkey = ctx.clientIdentity.getID();
     let x509Data = userkey.split("x509::")[1];
     let CN = /\/CN=([^/]+)/.exec(x509Data);
     CN = CN[1].replace(/::$/, ''); // Bỏ dấu hai chấm (::) đằng sau "appUser"
 
+    // lấy kết quả tồn tại trong world state
     const rs = await ctx.stub.getState(resultKey);
     const rsmain = JSON.parse(rs.toString());
+
+    // kiểm tra danh tính người truy cập
+    const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
+    if (clientMSPID !== 'Org1MSP') {
+      throw new Error('Client is not part of the organization');
+    }
     // kiểm tra role của người dùng
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
@@ -242,12 +254,12 @@ class StoreContract extends Contract {
       }
     }
 
-    // const exists = await this.CheckResultExists(ctx, subjectMS, studentMS);
     const exists = await this.ResultExistsByID(ctx, subjectMS, studentMS, resultID);
     if (!exists) {
       throw Error('Result does not exists in blockchain');
     }
 
+    let action = 'Update';
     let result = {
       docType: 'result',
       resultID,
@@ -261,15 +273,17 @@ class StoreContract extends Contract {
       date_awarded,
       CN,
       permissionGranted: rsmain.permissionGranted,
+      action,
     };
 
-
-    await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(result)));
+    await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(result))); // cập nhật kết quả học tập
 
   }
 
+  // cấp quyền truy cập vào kết quả học tập
   async grantAccessResult(ctx, resultID, subjectMS, studentMS, email) {
 
+    // Kiểm tra danh tính người dùng 
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not a valid User');
@@ -277,12 +291,16 @@ class StoreContract extends Contract {
     if (!cid.assertAttributeValue('role', 'rector')) {
       throw new Error('You do not have permission to perform this function');
     }
+
+    // tạo key và lấy kết quả học tập từ world state 
     let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     const rs = await ctx.stub.getState(resultKey);
     let rsmain = JSON.parse(rs.toString());
 
+    // cập nhật quyền truy cập và action 
     if (!rsmain.permissionGranted.includes(email)) {
       rsmain.permissionGranted.push(email);
+      rsmain.action = 'Change access';
     } else {
       throw new Error("MS does exists in permissionGranted");
     }
@@ -291,7 +309,10 @@ class StoreContract extends Contract {
 
   }
 
+  // thu hồi quyền truy cập vào kết quả học tập 
   async revokeAccessResult(ctx, resultID, subjectMS, studentMS, email) {
+
+    // Kiểm tra danh tính người dùng 
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not a valid User');
@@ -300,33 +321,36 @@ class StoreContract extends Contract {
       throw new Error('You do not have permission to perform this function');
     }
 
+    // tạo key và lấy kết quả học tập từ world state 
     let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     const rs = await ctx.stub.getState(resultKey);
     let rsmain = JSON.parse(rs.toString());
 
+    // thu hồi quyền chỉnh sửa kết quả học tập sinh viên nếu hợp lệ
     if (!rsmain.permissionGranted.includes(email)) {
       throw new Error("MS does not exists in permissionGranted");
     } else if (rsmain.permissionGranted.includes(email)) {
       rsmain.permissionGranted = rsmain.permissionGranted.filter(
         (permission) => permission !== email
       );
+      rsmain.action = 'Change access';
     } else {
       throw new Error("Error revokeAccessResult");
     }
     await ctx.stub.putState(resultKey, Buffer.from(JSON.stringify(rsmain)));
   }
 
-  //Delete Result
-  async DeleteResult(ctx, subjectMS, studentMS, resultID) {
-    const exists = await this.ResultExistsByID(ctx, subjectMS, studentMS, resultID);
-    if (!exists) {
-      throw new Error(`Kết quả ${resultID} không tồn tại`);
-    }
-    let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]);
-    await ctx.stub.deleteState(resultKey);
-  }
+  // //Delete Result
+  // async DeleteResult(ctx, subjectMS, studentMS, resultID) {
+  //   const exists = await this.ResultExistsByID(ctx, subjectMS, studentMS, resultID);
+  //   if (!exists) {
+  //     throw new Error(`Kết quả ${resultID} không tồn tại`);
+  //   }
+  //   let resultKey = ctx.stub.createCompositeKey('Result_CTU', [resultID + '-' + subjectMS + '-' + studentMS]);
+  //   await ctx.stub.deleteState(resultKey);
+  // }
 
-  // create Degree
+  // Tạo bằng cấp cho sinh viên đủ điều kiện 
   async createDegree(
     ctx,
     university,
@@ -443,32 +467,32 @@ class StoreContract extends Contract {
 
   // Smart contract for student
   // Create Student
-  async CreateStudent(
-    ctx,
-    studentID,
-    studentEmail,
-    studentMS,
-    studentName,
-    studentSex,
-    studentPass,
-  ) {
-    const studentExists = await this.UserExists(ctx, studentEmail);
-    if (studentExists) {
-      throw new Error("Thông tin sinh viên này đã tồn tại.");
-    }
+  // async CreateStudent(
+  //   ctx,
+  //   studentID,
+  //   studentEmail,
+  //   studentMS,
+  //   studentName,
+  //   studentSex,
+  //   studentPass,
+  // ) {
+  //   const studentExists = await this.UserExists(ctx, studentEmail);
+  //   if (studentExists) {
+  //     throw new Error("Thông tin sinh viên này đã tồn tại.");
+  //   }
 
-    let student = {
-      docType: "student",
-      studentID,
-      studentEmail,
-      studentMS,
-      studentName,
-      studentSex,
-      studentPass,
-    };
+  //   let student = {
+  //     docType: "student",
+  //     studentID,
+  //     studentEmail,
+  //     studentMS,
+  //     studentName,
+  //     studentSex,
+  //     studentPass,
+  //   };
 
-    await ctx.stub.putState(studentEmail, Buffer.from(JSON.stringify(student)));
-  }
+  //   await ctx.stub.putState(studentEmail, Buffer.from(JSON.stringify(student)));
+  // }
 
   // Smart contract for teacher
   // Create Teacher
@@ -528,12 +552,7 @@ class StoreContract extends Contract {
     await ctx.stub.putState(adminEmail, Buffer.from(JSON.stringify(admin)));
   }
 
-  //check user info of blockchain
-  async UserExists(ctx, Email) {
-    const studentState = await ctx.stub.getState(Email);
-    return studentState && studentState.length > 0;
-  }
-
+  // kiểm tra kết quả học tập tồn tại trong hệ thống bằng ID 
   async ResultExistsByID(ctx, subjectMS, studentMS, ID) {
     let resultKey = ctx.stub.createCompositeKey('Result_CTU', [ID + '-' + subjectMS + '-' + studentMS]); // tạp key cho result
     //check result of blockchain
@@ -541,6 +560,7 @@ class StoreContract extends Contract {
     return resultState && resultState.length > 0;
   }
 
+  // kiểm tra học phần của sinh viên tồn tại trong hệ thống hay chưa
   async ResultExists(ctx, subjectMS, studentMS) {
     let queryString = {};
     queryString.selector = {};
@@ -553,6 +573,7 @@ class StoreContract extends Contract {
     return false
   }
 
+  // kiểm tra bằng bằng cấp đã tồn tại trong hệ thống hay chưa (tìm kiếm bằng studentMS + major)
   async DegreeExists(ctx, studentMS, major) {
     let queryString = {};
     queryString.selector = {};
@@ -566,6 +587,7 @@ class StoreContract extends Contract {
     return false
   }
 
+  // kiểm tra kết quả học tập của một sinh viên có tồn tại trong học kỳ và năm học hiện tại hay chưa
   async ResultExistsSemester(ctx, subjectMS, studentMS, semester, date_awarded) {
     let queryString = {};
     queryString.selector = {};
@@ -580,18 +602,25 @@ class StoreContract extends Contract {
     return false
   }
 
-  async CheckResultDetailExists(ctx, subjectMS, studentMS) {
-    let queryString = {};
-    queryString.selector = {};
-    queryString.selector.subjectMS = subjectMS;
-    queryString.selector.studentMS = studentMS;
-    const result = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
-    if (result !== "[]") {
-      return true;
-    }
-    return false;
+  // async CheckResultDetailExists(ctx, subjectMS, studentMS) { // có thể không sử dụng
+  //   let queryString = {};
+  //   queryString.selector = {};
+  //   queryString.selector.subjectMS = subjectMS;
+  //   queryString.selector.studentMS = studentMS;
+  //   const result = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
+  //   if (result !== "[]") {
+  //     return true;
+  //   }
+  //   return false;
+  // }
+
+  // Kiểm tra user tồn tại trong blockchain bằng email đăng ký (sử dụng trong smart contract)
+  async UserExists(ctx, Email) {
+    const studentState = await ctx.stub.getState(Email);
+    return studentState && studentState.length > 0;
   }
 
+  // kiểm tra người dùng đã đăng ký danh tính hay chưa (sử dụng api bên ngoài)
   async CheckUserLedger(ctx, Email) {
     const userState = await ctx.stub.getState(Email);
 
@@ -599,6 +628,7 @@ class StoreContract extends Contract {
     // return JSON.stringify(userState);
   }
 
+  // kiểm tra user có mang vai trò là rector hay không?
   async CheckRector(ctx) {
     let cid = new ClientIdentity(ctx.stub);
     if (!cid.assertAttributeValue('role', 'teacher') && !cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
@@ -612,8 +642,9 @@ class StoreContract extends Contract {
     }
   }
 
-  // NFT
-  async Initialize(ctx, name, symbol) {// khởi tạo tên và biểu tượng của token 
+  // ***** NFT ******
+  // khởi tạo tên và biểu tượng của token 
+  async Initialize(ctx, name, symbol) {
 
     // Check minter authorization - this sample assumes Org1 is the issuer with privilege to initialize contract (set the name and symbol)
     const clientMSPID = ctx.clientIdentity.getMSPID();
@@ -636,7 +667,9 @@ class StoreContract extends Contract {
     await ctx.stub.putState(symbolKey, Buffer.from(symbol));
     return nameKey;
   }
-  async MintWithTokenURI(ctx, tokenId, tokenURI, owner) { // tạo nft
+
+  // Tạo NFT
+  async MintWithTokenURI(ctx, tokenId, tokenURI, owner) {
     await this.CheckInitialized(ctx);// kiểm tra hàm tạo tên và biểu tượng cho nft đã được khởi tạo hay chưa?
 
     const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
@@ -648,9 +681,7 @@ class StoreContract extends Contract {
     if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not have access');
     }
-    // Get ID of submitting client identity
-    // const minter = ctx.clientIdentity.getID();
-    // Check if the token to be minted does not exist
+
     const exists = await this._nftExists(ctx, tokenId);
     if (exists) {
       throw new Error(`The token ${tokenId} is already minted.`);
@@ -664,7 +695,6 @@ class StoreContract extends Contract {
     const nftKey = ctx.stub.createCompositeKey(nftPrefix, [tokenId]);
     await ctx.stub.putState(nftKey, Buffer.from(JSON.stringify(nft)));
 
-    // 2 chức năng không cần thiết khi tạo nft cho bằng cấp: phát sự kiện lên mạng và tạo 1 balanceKey để tính số ntf mà cid sở hữu
   }
 
   async TotalSupply(ctx) { // hàm tính tổng số nft được tạo ra
@@ -685,6 +715,7 @@ class StoreContract extends Contract {
     return totalSupply;
   }
 
+  // Lấy tên của NFT 
   async Name(ctx) {
     await this.CheckInitialized(ctx);
 
@@ -697,6 +728,7 @@ class StoreContract extends Contract {
     }
   }
 
+  // Lấy ký hiệu của NFT
   async Symbol(ctx) {
     await this.CheckInitialized(ctx);
 
@@ -709,6 +741,7 @@ class StoreContract extends Contract {
 
   }
 
+  // Lấy thông tin NFT đã được tạo 
   async _readNFT(ctx, tokenId) {
     const nftKey = ctx.stub.createCompositeKey(nftPrefix, [tokenId]);
     const nftBytes = await ctx.stub.getState(nftKey);
@@ -719,13 +752,14 @@ class StoreContract extends Contract {
     return nft;
   }
 
+  // Kiểm tra tồn tại của NFT
   async _nftExists(ctx, tokenId) {
     const nftKey = ctx.stub.createCompositeKey(nftPrefix, [tokenId]);
     const nftBytes = await ctx.stub.getState(nftKey);
     return nftBytes && nftBytes.length > 0;
   }
 
-  // Checks that contract options have been already initialized
+  // Kiểm tra các tùy chọn của contract đã được khởi tạo hay chưa 
   async CheckInitialized(ctx) {
     const nameBytes = await ctx.stub.getState(nameKey);
     if (!nameBytes || nameBytes.length === 0) {

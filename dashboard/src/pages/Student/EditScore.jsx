@@ -226,27 +226,30 @@ const EditScore = () => {
                         <div className="w-full max-w-lg">
                             {/* <h1 className='text-[30px] text-center'>Danh sách </h1> */}
                             <div className='bg-white shadow-md rounded px-8 py-6'>
+                                <h1 className=''>Người dùng có quyền chỉnh sửa</h1>
                                 <table className='w-full'>
                                     <tbody>
                                         {Array.isArray(list) && list.map((element, index) => {
                                             return (
-                                                <tr key={index}>
-                                                    <td>Email:</td>
-                                                    <td>{element}</td>
-                                                    <td className='flex justify-center'>
-                                                        {deleteStatus ? (
-                                                            <LoadingSpinner />
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleRevoke(element)}
-                                                                className="bg-red-500 w-[50px] flex justify-center hover.bg-blue-700 text-white font-bold py-2 px-5 my-2 rounded focus:outline-none focus:shadow-outline"
-                                                                type="button"
-                                                            >
-                                                                Xóa
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
+                                                <>
+                                                    <tr key={index}>
+                                                        <td>Email:</td>
+                                                        <td>{element}</td>
+                                                        <td className='flex justify-center'>
+                                                            {deleteStatus ? (
+                                                                <LoadingSpinner />
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleRevoke(element)}
+                                                                    className="bg-red-500 w-[50px] flex justify-center hover.bg-blue-700 text-white font-bold py-2 px-5 my-2 rounded focus:outline-none focus:shadow-outline"
+                                                                    type="button"
+                                                                >
+                                                                    Xóa
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                </>
                                             )
                                         })}
                                     </tbody>

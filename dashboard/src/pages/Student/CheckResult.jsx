@@ -194,6 +194,7 @@ const CheckResult = () => {
                                     <th>Năm học</th>
                                     <th>Thời gian</th>
                                     <th>Người thực hiện</th>
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -208,6 +209,7 @@ const CheckResult = () => {
                                             <td>{result.Value.date_awarded}</td>
                                             <td>{formatDateTime(result.Timestamp)}</td>
                                             <td>{result.Value.CN}</td>
+                                            <td>{result.Value.action}</td>
                                         </tr>
                                     )
                                 })}

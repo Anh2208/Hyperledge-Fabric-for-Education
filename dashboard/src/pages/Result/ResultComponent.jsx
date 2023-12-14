@@ -145,6 +145,7 @@ const ResultComponent = () => {
                         backgroundColor: 'red'
                     }
                 });
+                // window.location.reload();
             }
             setCourses(courses);
             setEditedScores({});
