@@ -98,9 +98,11 @@ export const registerAndEnrollUser = async (
     // if affiliation is specified by client, the affiliation value must be configured in CA
     const secret = await caClient.register(
       {
-        affiliation: affiliation,
+        // affiliation: affiliation,
+        // affiliation: "org1.department1",
+        affiliation: "org1.CNTT&TT",
         enrollmentID: userId,
-        role: "client",attrs: [{ name: 'role', value: role, ecert: true }]
+        role: "client", attrs: [{ name: 'role', value: role, ecert: true }]
       },
       adminUser,
     );

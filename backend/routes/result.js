@@ -21,7 +21,8 @@ import {
   checkResult,
   getDetailGroup,
   grantAccessResult,
-  revokeAccessResult
+  revokeAccessResult,
+  checkAllResult
 } from "../controller/resultController.js";
 
 const router = express.Router();
@@ -34,6 +35,9 @@ router.post("/check/confirmResult/:id", confirmResult);
 
 // check synchronized of result with current value 
 router.post("/check/checkResult/:id", checkResult);
+
+// check synchronized of result with current value 
+router.post("/check/checkAllResult", checkAllResult);
 
 // grantAccessResult
 router.post("/access/grantAccessResult", grantAccessResult);

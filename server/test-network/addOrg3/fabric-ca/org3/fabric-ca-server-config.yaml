@@ -238,13 +238,15 @@ ldap:
 #############################################################################
 affiliations:
   org1:
+    - CNTT&TT
     - department1
     - department2
-    - CNTT&TT
   org2:
     - department1
+    - CNTT&TT
   org3:
     - department1
+    - CNTT&TT
 
 #############################################################################
 #  Signing section

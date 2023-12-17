@@ -56,272 +56,238 @@ const Router = () => {
 
     const { user } = useContext(AuthContext);
     console.log(user)
+
     return (
-        <div className='flex container'>
-            {/* <aside className='max-w-[64px] xl:w-full xl:max-w-[280px]'>
+        <>
+            <div className='flex container'>
+                {/* <aside className='max-w-[64px] xl:w-full xl:max-w-[280px]'>
                 <Sidebar />
             </aside> */}
-            <div className=''>
-                <Routes>
-                    <Route path='/' element={<Navigate to="/home" />} />
-                    {/* <Route path='/home' element={<Home />} /> */}
-                    <Route path='/login' element={<Login />} />
-                    <Route
-                        path="/home"
-                        element={
-                            <>
-                                <Header></Header>
-                                <Protected user={user && user.role ? user.role : ''} role="admin">
-                                    <Home />
-                                </Protected>
-                            </>
-                        } />
+                <div className=''>
+                    <Routes>
+                        <Route path='/' element={<Navigate to="/home" />} />
+                        {/* <Route path='/home' element={<Home />} /> */}
+                        <Route path='/login' element={<Login />} />
+                        <Route
+                            path="/home"
+                            element={
+                                <>
+                                    <Header></Header>
+                                    <Protected user={user && user.role ? user.role : ''} role="admin">
+                                        <Home />
+                                    </Protected>
+                                </>
+                            } />
 
-                    <Route
-                        path='/*'
-                        element={
-                            <Layout>
-                                <Routes>
-                                    {/* <div className='flex'>
+                        <Route
+                            path='/*'
+                            element={
+                                <Layout>
+                                    <Routes>
+                                        {/* <div className='flex'>
                                         <aside className='sm:w-full max-w-[64px] md:max-w[280px]'>
                                             <Sidebar />
                                         </aside>
                                         <div className='flex-1 overflow-auto' > */}
-                                    {/* <Routes> */}
-                                    <Route
-                                        path="/user"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <UserComponent />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/user/adduser"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <AddUser />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/course"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <CourseComponent />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/course/add"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <AddCourse />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/course/detail/:id"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <CourseDetail />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/course/update/:id"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <CourseUpdate />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/subject"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <SubjectComponent />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/subject/add"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <AddSubject />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/subject/edit/:id"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <EditSubject />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/result"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <ResultComponent />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/result/export/:id"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <ResultExport />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/student"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <StudentResult />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/student/result/:id"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <DetailResult />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/student/result/check"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <CheckResult />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/student/result/:id"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <DetailResult />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/student/semester/:id"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <Semester />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/student/semester/print/:id"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <PrintResult />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/student/editscore"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <EditScore />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/verify"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <VerifyListComponent />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/verify/management"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <VerifyListManage />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/degree"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <DegreeComponent />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/degree"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <DegreeComponent />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/degree/create"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <DegreeCreate />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/degree/update"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <DegreeUpdate />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/degree/result"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <DegreeResult />
-                                            </Protected>
-                                        } />
-                                    <Route
-                                        path="/degree/create/verify"
-                                        element={
-                                            <Protected user={user && user.role ? user.role : ''} role="admin">
-                                                <DegreeVerify />
-                                            </Protected>
-                                        } />
+                                        {/* <Routes> */}
+                                        <Route
+                                            path="/user"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <UserComponent />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/user/adduser"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <AddUser />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/course"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <CourseComponent />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/course/add"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <AddCourse />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/course/detail/:id"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <CourseDetail />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/course/update/:id"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <CourseUpdate />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/subject"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <SubjectComponent />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/subject/add"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <AddSubject />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/subject/edit/:id"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <EditSubject />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/result"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <ResultComponent />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/result/export/:id"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <ResultExport />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/student"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <StudentResult />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/student/result/:id"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <DetailResult />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/student/result/check"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <CheckResult />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/student/result/:id"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <DetailResult />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/student/semester/:id"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <Semester />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/student/semester/print/:id"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <PrintResult />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/student/editscore"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <EditScore />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/verify"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <VerifyListComponent />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/verify/management"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <VerifyListManage />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/degree"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <DegreeComponent />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/degree"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <DegreeComponent />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/degree/create"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <DegreeCreate />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/degree/update"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <DegreeUpdate />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/degree/result"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <DegreeResult />
+                                                </Protected>
+                                            } />
+                                        <Route
+                                            path="/degree/create/verify"
+                                            element={
+                                                <Protected user={user && user.role ? user.role : ''} role="admin">
+                                                    <DegreeVerify />
+                                                </Protected>
+                                            } />
 
-                                    {/* </Routes> */}
-                                    {/* </div>
+                                        {/* </Routes> */}
+                                        {/* </div>
                                     </div> */}
-                                </Routes>
-                            </Layout>
-                        }
-                    >
-                    </Route>
-                    <Route path="*" element={<NotFound />} />
-                </Routes>
+                                    </Routes>
+                                </Layout>
+                            }
+                        >
+                        </Route>
+                        <Route path="*" element={<NotFound />} />
+                    </Routes>
+                </div>
             </div>
-        </div>
+        </>
     )
 }
 
 export default Router
 
-{/* <Route
-                        path='/*'
-                        element={ // Sử dụng element và Routes bên trong Route để chỉ thêm Sidebar cho các trang con sau đó
-                            <div className='flex'>
-                                <aside className='sm:w-full max-w-[64px] md:max-w-[280px]'>
-                                    <Sidebar />
-                                </aside>
-                                <div className='flex-1 overflow-auto'>
-                                    <Routes>
-                                        <Route path='/user' element={<UserComponent />} />
-                                        <Route path='/user/adduser' element={<AddUser />} />
-                                        <Route path='/course' element={<CourseComponent />} />
-                                        <Route path='/course/add' element={<AddCourse />} />
-                                        <Route path='/course/detail/:id' element={<CourseDetail />} />
-                                        <Route path='/course/update/:id' element={<CourseUpdate />} />
-                                        <Route path='/subject' element={<SubjectComponent />} />
-                                        <Route path='/subject/add' element={<AddSubject />} />
-                                        <Route path='/subject/edit/:id' element={<EditSubject />} />
-                                        <Route path='/result' element={<ResultComponent />} />
-                                        <Route path='/result/export/:id' element={<ResultExport />} />
-                                        <Route path='/student' element={<StudentResult />} />
-                                        <Route path='/student/result/:id' element={<DetailResult />} />
-                                        <Route path='/student/result/check' element={<CheckResult />} />
-                                        <Route path='/student/semester/:id' element={<Semester />} />
-                                        <Route path='/student/semester/print/:id' element={<PrintResult />} />
-                                        <Route path='/verify' element={<VerifyListComponent />} />
-                                        <Route path='/verify/management' element={<VerifyListManage />} />
-                                        <Route path='/degree' element={<DegreeComponent />} />
-                                        <Route path='/degree/create' element={<DegreeCreate />} />
-                                        <Route path='/degree/update' element={<DegreeUpdate />} />
-                                        <Route path='/degree/result' element={<DegreeResult />} />
-                                        <Route path='/degree/create/verify' element={<DegreeVerify />} />
-                                    </Routes>
-                                </div>
-                            </div>
-                        }
-                    /> */}

@@ -31,8 +31,8 @@ mongoose.set("strictQuery", false);
 const connect = async () => {
   try {
     await mongoose.connect(process.env.mongoURI, {
-      // serverSelectionTimeoutMS: 30000, // Tăng thời gian chờ lên 30 giây
-      // socketTimeoutMS: 45000, // Tăng thời gian chờ cho socket lên 45 giây
+      serverSelectionTimeoutMS: 30000, // Tăng thời gian chờ lên 30 giây
+      socketTimeoutMS: 45000, // Tăng thời gian chờ cho socket lên 45 giây
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

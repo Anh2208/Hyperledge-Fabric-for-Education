@@ -1074,6 +1074,33 @@ export const checkResult = async (req, res) => {
   }
 };
 
+export const checkAllResult = async (req, res) => {
+  const group = req.body.data;
+  try {
+    console.log("group is", group);
+
+    for (let i = 0; i < group.length; i++) {
+      let key = true;
+      for (let x = 0; x < group[i].results.length; x++) {
+        // console.log("dadadad", group[i].results[x]);
+        if (group[i].results[x].score != undefined) {
+          const check = await compareResult(group[i].results[x]._id);
+          console.log("check", check);
+          if (check == 'Lỗi dữ liệu, không đồng bộ' || check == false) {
+            key = false;
+          }
+        }
+      }
+      group[i].synchronized = key;
+    }
+
+    res.status(200).json({ success: true, message: 'taaaaa', data: group });
+
+  } catch (e) {
+    res.status(400).json({ success: false, message: e });
+  }
+};
+
 // so sánh data resutt mongodb và blockchain
 const compareResult = async (id) => {
   // const MS = studentMS.source;
@@ -1123,7 +1150,6 @@ const compareResult = async (id) => {
     });
 
     gateway.disconnect();
-
     return dataIsEqual;
   } catch (e) {
 

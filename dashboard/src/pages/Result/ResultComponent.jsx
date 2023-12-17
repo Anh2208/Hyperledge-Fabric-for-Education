@@ -15,6 +15,7 @@ const ResultComponent = () => {
     const [listedCourse, setListedCourse] = useState(''); // khi click "liệt kê" sẽ lấy value của học phần đang chọn
     const [isRegistering, setIsRegistering] = useState(false);// tạo trạng thái loading khi nhấn nút "Lưu"
     const [courseTableID, setCourseTableID] = useState('');
+    const [checkedSynchronization, setCheckedSynchronization] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -22,24 +23,35 @@ const ResultComponent = () => {
                 withCredentials: true
             });
             const response = await axiosInstance.get(`${BASE_URL}group/getGroup/getAll`);
+            const check = await axiosInstance.post(`${BASE_URL}result/check/checkAllResult`, {
+                data: response.data.data,
+            });
+            setCourses(check.data.data);
 
-            setCourses(response.data.data);
             if (response.data.data && selectedCourse == '') {
                 setSelectedCourse(response.data.data[0].groupTen);
                 setListedCourse(response.data.data[0].groupTen);
                 setCourseTableID(response.data.data[0]._id);
             }
-            // console.log("courses is", response.data.data);
-
         } catch (err) {
             console.log("Lỗi dữ liệu");
         }
     };
 
+    // console.log("courses is", courses);
     useEffect(() => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        // Chỉ kiểm tra đồng bộ khi component được hiển thị lần đầu
+        if (!checkedSynchronization && Array.isArray(courses) && courses.length > 0) {
+            checksynchronized();
+            setCheckedSynchronization(true);
+        }
+    }, [courses, checkedSynchronization]);
+
+    console.log("heelo")
     const handleChange = e => {
         setSelectedCourse(e.target.value);
         setEditedScores({});
@@ -49,13 +61,24 @@ const ResultComponent = () => {
         setListedCourse(selectedCourse);
         setEditedScores({});
         setIsEditing(false);
-
+        checksynchronized();
         //change
         const currentTable = courses.find(course => course.groupTen === selectedCourse);
         setCourseTableID(currentTable._id);
     }
-    // console.log("setCourseTableID is", courseTableID);
-
+    const checksynchronized = () => {
+        for (let i = 0; i < courses.length; i++) {
+            if (courses[i].synchronized == false) {
+                toast.error(`Lớp học phần ${courses[i].groupMa} có điểm không đồng bộ!!!`, {
+                    autoClose: 2000,
+                    style: {
+                        backgroundColor: 'red'
+                    }
+                });
+            }
+        }
+        console.log("my check check");
+    }
     // Cập nhật điểm sinh viên
     const [isEditing, setIsEditing] = useState(false);
     const [editedScores, setEditedScores] = useState({});
@@ -176,173 +199,179 @@ const ResultComponent = () => {
             <section className='content-main'>
                 <div className="content-header">
                     <h2 className="content-title">Điểm lớp học phần</h2>
-                    <div className=' bg-cyan-200 rounded-md'>
-                        <Link to={`/result/export/${courseTableID}`}>
-                            <button className="bg-primaryColor px-6 text-white font-[600] h-[44px] flex items-center rounded-md">
-                                In Điểm
-                            </button>
-                        </Link>
+                    <div className='rounded-md'>
+                        {courses.length > 0 ? (
+                            <Link to={`/result/export/${courseTableID}`}>
+                                <button className="bg-primaryColor px-6 text-white font-[600] h-[44px] flex items-center rounded-md">
+                                    In Điểm
+                                </button>
+                            </Link>
+                        ) : (
+                            <LoadingSpinner />
+                        )}
                     </div>
                 </div>
-                <div className=''>
-                    <div className="gap-5 m-5 title_list">
-                        <h1 className='text-[30px]'>DANH SÁCH ĐIỂM SINH VIÊN</h1>
-                        <div className='flex flex-row justify-center gap-3'>
-                            <div className="flex items-center">
-                                <a>Học phần: </a>
+                {courses.length > 0 ? (
+                    <div className=''>
+                        <div className="gap-5 m-5 title_list">
+                            <h1 className='text-[30px]'>DANH SÁCH ĐIỂM SINH VIÊN</h1>
+                            <div className='flex flex-row justify-center gap-3'>
+                                <div className="flex items-center">
+                                    <a>Học phần: </a>
+                                </div>
+                                {/* <div className="mb-10 flex items-center justify-between"> */}
+                                <label className="text-headingColor font-bold text-[16px] leading-7">
+                                    {Array.isArray(courses) ? (
+                                        <select
+                                            // id="role"
+                                            value={selectedCourse}
+                                            onChange={handleChange}
+                                            className="text-textColor rounded-md border-2 font-semibold text-[15px] leading-7 p-1"
+                                        >
+                                            {courses?.map((course, index) => (
+                                                <option key={index} value={course.groupTen}>
+                                                    {course.groupTen} - {course.groupMa}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : null}
+                                </label>
+                                {/* </div> */}
+                                <button onClick={handleClickListed} className="bg-primaryColor p-2 text-white font-[600] h-[30px] flex items-center rounded-md">
+                                    Liệt kê
+                                </button>
                             </div>
-                            {/* <div className="mb-10 flex items-center justify-between"> */}
-                            <label className="text-headingColor font-bold text-[16px] leading-7">
-                                {Array.isArray(courses) ? (
-                                    <select
-                                        // id="role"
-                                        value={selectedCourse}
-                                        onChange={handleChange}
-                                        className="text-textColor rounded-md border-2 font-semibold text-[15px] leading-7 p-1"
-                                    >
-                                        {courses?.map((course, index) => (
-                                            <option key={index} value={course.groupTen}>
-                                                {course.groupTen} - {course.groupMa}
-                                            </option>
-                                        ))}
-                                    </select>
-                                ) : null}
-                            </label>
-                            {/* </div> */}
-                            <button onClick={handleClickListed} className="bg-primaryColor p-2 text-white font-[600] h-[30px] flex items-center rounded-md">
-                                Liệt kê
-                            </button>
+                            <div className='mx-auto flex' >
+                                {Array.isArray(courses) ? courses.map((course, index) =>
+                                    course.groupTen === listedCourse && (
+                                        <div className='flex' key={index}>
+                                            <h1><strong>Giảng Viên:</strong> {course.namegv}</h1> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+                                            <h1> <strong>MSGV:</strong> &nbsp; {course.msgv}</h1> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+                                            {/* <h1> <strong>Mã học phần:</strong> &nbsp; {course.subjectMa}</h1> */}
+                                        </div>
+                                    )
+                                ) : (
+                                    null
+                                )}
+                            </div>
                         </div>
-                        <div className='mx-auto flex' >
-                            {Array.isArray(courses) ? courses.map((course, index) =>
-                                course.groupTen === listedCourse && (
-                                    <div className='flex' key={index}>
-                                        <h1><strong>Giảng Viên:</strong> {course.namegv}</h1> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
-                                        <h1> <strong>MSGV:</strong> &nbsp; {course.msgv}</h1> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
-                                        {/* <h1> <strong>Mã học phần:</strong> &nbsp; {course.subjectMa}</h1> */}
-                                    </div>
-                                )
-                            ) : (
-                                null
-                            )}
-                        </div>
-                    </div>
 
-                    <table className='table-score mx-auto border-separate border border-slate-400 ' >
-                        <thead>
-                            <tr>
-                                <th className='border border-black'>STT</th>
-                                <th className='border border-black'>Mã sinh viên</th>
-                                <th className='border border-black'>Tên sinh viên</th>
-                                <th className='border border-black'>Điểm số</th>
-                                <th className='border border-black'>Điểm Chữ</th>
-                                {/* <th className='border border-black'>Hành động</th> */}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Array.isArray(courses) ? courses.map((course, index) => (
-                                course.groupTen === listedCourse && (
-                                    course.results.map((studentResult, resultIndex) => {
-                                        let grade;
-                                        if (studentResult.score >= 8) {
-                                            grade = "A";
-                                        } else if (studentResult.score >= 6) {
-                                            grade = "B";
-                                        } else if (studentResult.score >= 4) {
-                                            grade = "C";
-                                        } else if (studentResult.score >= 0) {
-                                            grade = "F";
-                                        } else {
-                                            grade = "";
-                                        }
-                                        return (
-                                            <tr key={resultIndex}>
-                                                <td className='border border-black '>{resultIndex + 1}</td>
-                                                <td className='border border-black '>{studentResult.studentMS}</td>
-                                                <td className='border border-black text-left'>{studentResult.studentName}</td>
-                                                {/* <td className='border border-black'>
+                        <table className='table-score mx-auto border-separate border border-slate-400 ' >
+                            <thead>
+                                <tr>
+                                    <th className='border border-black'>STT</th>
+                                    <th className='border border-black'>Mã sinh viên</th>
+                                    <th className='border border-black'>Tên sinh viên</th>
+                                    <th className='border border-black'>Điểm số</th>
+                                    <th className='border border-black'>Điểm Chữ</th>
+                                    {/* <th className='border border-black'>Hành động</th> */}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Array.isArray(courses) ? courses.map((course, index) => (
+                                    course.groupTen === listedCourse && (
+                                        course.results.map((studentResult, resultIndex) => {
+                                            let grade;
+                                            if (studentResult.score >= 8) {
+                                                grade = "A";
+                                            } else if (studentResult.score >= 6) {
+                                                grade = "B";
+                                            } else if (studentResult.score >= 4) {
+                                                grade = "C";
+                                            } else if (studentResult.score >= 0) {
+                                                grade = "F";
+                                            } else {
+                                                grade = "";
+                                            }
+                                            return (
+                                                <tr key={resultIndex}>
+                                                    <td className='border border-black '>{resultIndex + 1}</td>
+                                                    <td className='border border-black '>{studentResult.studentMS}</td>
+                                                    <td className='border border-black text-left'>{studentResult.studentName}</td>
+                                                    {/* <td className='border border-black'>
                                                     <input className='w-5' type="number" value={studentResult.score || ""} disabled />
                                                 </td> */}
-                                                <td className='border border-black'>
-                                                    {isEditing ? (
-                                                        <input
-                                                            className='w-8'
-                                                            type="number"
-                                                            placeholder={studentResult.score}
-                                                            value={editedScores[studentResult.studentMS]?.score || ""}
-                                                            onChange={(e) => {
-                                                                if (studentResult.score != e.target.value) {
-                                                                    setEditedScores({
-                                                                        ...editedScores,
-                                                                        [studentResult.studentMS]: {
-                                                                            ...studentResult,
-                                                                            score: e.target.value,
-                                                                        },
-                                                                    })
+                                                    <td className='border border-black'>
+                                                        {isEditing ? (
+                                                            <input
+                                                                className='w-8'
+                                                                type="number"
+                                                                placeholder={studentResult.score}
+                                                                value={editedScores[studentResult.studentMS]?.score || ""}
+                                                                onChange={(e) => {
+                                                                    if (studentResult.score != e.target.value) {
+                                                                        setEditedScores({
+                                                                            ...editedScores,
+                                                                            [studentResult.studentMS]: {
+                                                                                ...studentResult,
+                                                                                score: e.target.value,
+                                                                            },
+                                                                        })
+                                                                    }
                                                                 }
-                                                            }
-                                                            }
-                                                        />
-                                                    ) : (
-                                                        <a>
-                                                            {studentResult.score || ""}
-                                                        </a>
-                                                    )}
-                                                </td>
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            <a>
+                                                                {studentResult.score || ""}
+                                                            </a>
+                                                        )}
+                                                    </td>
 
-                                                <td className='border border-black'>{grade}</td>
-                                            </tr>
-                                        );
-                                    })
-                                )
-                            )) : null}
-                        </tbody>
-                    </table>
-                    <div>
-                        <div className="flex justify-end pt-5 gap-5">
-                            <div>
+                                                    <td className='border border-black'>{grade}</td>
+                                                </tr>
+                                            );
+                                        })
+                                    )
+                                )) : null}
+                            </tbody>
+                        </table>
+                        <div>
+                            <div className="flex justify-end pt-5 gap-5">
+                                <div>
+                                    {isEditing ? (
+                                        <>
+                                            {!isRegistering ? (
+                                                <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleClickSave}>
+                                                    <span className=' text-base font-semibold xl:block px-5 py-1'>
+                                                        Lưu
+                                                    </span>
+                                                </button>
+                                            ) : (
+                                                <LoadingSpinner />
+                                            )}
+                                        </>
+
+                                    ) : (
+                                        <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={() => setIsEditing(true)}>
+                                            <span className=' text-base font-semibold xl:block px-5 py-1'>
+                                                Cập nhật
+                                            </span>
+                                        </button>)
+                                    }
+                                </div>
+
                                 {isEditing ? (
                                     <>
                                         {!isRegistering ? (
-                                            <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleClickSave}>
-                                                <span className=' text-base font-semibold xl:block px-5 py-1'>
-                                                    Lưu
-                                                </span>
-                                            </button>
+                                            <div>
+                                                <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleCancel}>
+                                                    <span className=' text-base font-semibold xl:block px-5 py-1'>
+                                                        Hủy
+                                                    </span>
+                                                </button>
+                                            </div>
                                         ) : (
-                                            <LoadingSpinner />
+                                            null
                                         )}
                                     </>
-
                                 ) : (
-                                    <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={() => setIsEditing(true)}>
-                                        <span className=' text-base font-semibold xl:block px-5 py-1'>
-                                            Cập nhật
-                                        </span>
-                                    </button>)
-                                }
+                                    null
+                                )}
                             </div>
-
-                            {isEditing ? (
-                                <>
-                                    {!isRegistering ? (
-                                        <div>
-                                            <button className='flex justify-center rounded-lg bg-primaryColor text-white p-1' onClick={handleCancel}>
-                                                <span className=' text-base font-semibold xl:block px-5 py-1'>
-                                                    Hủy
-                                                </span>
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        null
-                                    )}
-                                </>
-                            ) : (
-                                null
-                            )}
                         </div>
                     </div>
-                </div>
+                ) : null}
             </section>
         </>
     )

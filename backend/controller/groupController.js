@@ -157,7 +157,7 @@ export const getGroupbyMSGV = async (req, res) => {
 
 //get all group
 export const getAllGroup = async (req, res) => {
-  const group = await Group.find({}).populate("results");;
+  const group = await Group.find({}).populate("results");
 
   try {
     res
