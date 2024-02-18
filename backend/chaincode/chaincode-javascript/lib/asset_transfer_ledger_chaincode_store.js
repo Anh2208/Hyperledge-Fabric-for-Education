@@ -668,16 +668,16 @@ class StoreContract extends Contract {
     return nameKey;
   }
 
-  // Tạo NFT
+  // create NFT
   async MintWithTokenURI(ctx, tokenId, tokenURI, owner) {
-    await this.CheckInitialized(ctx);// kiểm tra hàm tạo tên và biểu tượng cho nft đã được khởi tạo hay chưa?
+    await this.CheckInitialized(ctx);// Check if creating name and icon for nft has been initialized or not?
 
-    const clientMSPID = ctx.clientIdentity.getMSPID();// kiểm tra người dùng có thuộc tổ chức Org1MSP hay không?
+    const clientMSPID = ctx.clientIdentity.getMSPID();// Check if the user belongs to Org1MSP organization or not?
     if (clientMSPID !== 'Org1MSP') {
       throw new Error('client is not authorized to mint new tokens');
     }
 
-    let cid = new ClientIdentity(ctx.stub);// kiểm tra người dùng có role admin hay không?
+    let cid = new ClientIdentity(ctx.stub);//Check if the user has the admin role or not?
     if (!cid.assertAttributeValue('role', 'admin') && !cid.assertAttributeValue('role', 'rector')) {
       throw new Error('Not have access');
     }
